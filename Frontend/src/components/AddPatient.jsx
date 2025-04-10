@@ -85,10 +85,20 @@ const PatientCard = ({ patient, isLinked, onAddPatient }) => {
 };
 
 // SearchResults Component
-const SearchResults = ({ searchResults, searchQuery, isSearching, linkedPatients, onAddPatient }) => {
+const SearchResults = ({ searchResults, searchQuery, isSearching, linkedPatients, onAddPatient, error }) => {
   return (
     <div className="space-y-4">
-      {searchResults.length === 0 && searchQuery.trim() !== "" && !isSearching ? (
+      {error && (
+        <div className="text-center py-10 bg-red-50 rounded-lg border border-red-200 border-dashed">
+          <svg className="w-12 h-12 mx-auto text-red-400 mb-3" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+          </svg>
+          <p className="text-red-600 font-medium">Error loading patients</p>
+          <p className="text-sm mt-2 text-red-500">{error}</p>
+        </div>
+      )}
+      
+      {!error && searchResults.length === 0 && searchQuery.trim() !== "" && !isSearching ? (
         <div className="text-center py-10 bg-gray-50 rounded-lg border border-gray-200 border-dashed">
           <svg className="w-12 h-12 mx-auto text-gray-400 mb-3" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9.172 16.172a4 4 0 015.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
@@ -97,7 +107,7 @@ const SearchResults = ({ searchResults, searchQuery, isSearching, linkedPatients
           <p className="text-sm mt-2 text-gray-400">Try a different search term</p>
         </div>
       ) : (
-        searchResults.map(patient => (
+        !error && searchResults.map(patient => (
           <PatientCard 
             key={patient.id}
             patient={patient}
@@ -116,22 +126,12 @@ const SearchResults = ({ searchResults, searchQuery, isSearching, linkedPatients
   );
 };
 
-const mockPatients = [
-  { id: 1, name: "John Doe", age: 45, gender: "Male", condition: "Hypertension" },
-  { id: 2, name: "Jane Smith", age: 32, gender: "Female", condition: "Diabetes" },
-  { id: 3, name: "Robert Johnson", age: 56, gender: "Male", condition: "Arthritis" },
-  { id: 4, name: "Lisa Brown", age: 28, gender: "Female", condition: "Asthma" },
-  { id: 5, name: "Michael Williams", age: 67, gender: "Male", condition: "Heart Disease" },
-  { id: 6, name: "Sarah Miller", age: 41, gender: "Female", condition: "Migraine" },
-  { id: 7, name: "James Wilson", age: 39, gender: "Male", condition: "Anxiety" },
-  { id: 8, name: "Emily Davis", age: 52, gender: "Female", condition: "Osteoporosis" },
-];
-
 // Toast notification function
-const toast = (message) => {
-  // Simple implementation - in a real app, you'd use a proper toast library
+const toast = (message, type = "success") => {
+  const bgColor = type === "success" ? "bg-blue-500" : "bg-red-500";
+  
   const toastElement = document.createElement("div");
-  toastElement.className = "fixed top-4 right-4 bg-blue-500 text-white px-6 py-3 rounded-lg shadow-lg z-50 transform transition-all duration-500 ease-in-out";
+  toastElement.className = `fixed top-4 right-4 ${bgColor} text-white px-6 py-3 rounded-lg shadow-lg z-50 transform transition-all duration-500 ease-in-out`;
   toastElement.textContent = message;
   document.body.appendChild(toastElement);
   
@@ -206,7 +206,8 @@ const SearchSection = ({
   searchResults, 
   isSearching, 
   linkedPatients, 
-  handleAddPatient 
+  handleAddPatient,
+  error
 }) => {
   return (
     <div className="bg-white rounded-lg shadow-md p-6">
@@ -229,9 +230,105 @@ const SearchSection = ({
         isSearching={isSearching}
         linkedPatients={linkedPatients}
         onAddPatient={handleAddPatient}
+        error={error}
       />
     </div>
   );
+};
+
+// API Service for Patient data
+const PatientService = {
+  // Base API URL - replace with your actual API endpoint
+  baseUrl: process.env.REACT_APP_API_URL || 'https://api.example.com',
+  
+  // Get headers for API requests
+  getHeaders() {
+    // You can add authorization headers here if needed
+    return {
+      'Content-Type': 'application/json',
+      'Authorization': `Bearer ${localStorage.getItem('token')}` // If using token-based auth
+    };
+  },
+  
+  // Search patients by name
+  async searchPatients(query) {
+    try {
+      const response = await fetch(`${this.baseUrl}/api/patients/search?query=${encodeURIComponent(query)}`, {
+        method: 'GET',
+        headers: this.getHeaders()
+      });
+      
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.message || 'Failed to fetch patients');
+      }
+      
+      return await response.json();
+    } catch (error) {
+      console.error('Error searching patients:', error);
+      throw error;
+    }
+  },
+  
+  // Add a patient to doctor's linked patients
+  async addPatientToDoctor(patientId) {
+    try {
+      const response = await fetch(`${this.baseUrl}/api/doctors/patients`, {
+        method: 'POST',
+        headers: this.getHeaders(),
+        body: JSON.stringify({ patientId })
+      });
+      
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.message || 'Failed to add patient');
+      }
+      
+      return await response.json();
+    } catch (error) {
+      console.error('Error adding patient:', error);
+      throw error;
+    }
+  },
+  
+  // Remove a patient from doctor's linked patients
+  async removePatientFromDoctor(patientId) {
+    try {
+      const response = await fetch(`${this.baseUrl}/api/doctors/patients/${patientId}`, {
+        method: 'DELETE',
+        headers: this.getHeaders()
+      });
+      
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.message || 'Failed to remove patient');
+      }
+      
+      return await response.json();
+    } catch (error) {
+      console.error('Error removing patient:', error);
+      throw error;
+    }
+  },
+  
+  // Get all linked patients for the current doctor
+  async getDoctorPatients() {
+    try {
+      const response = await fetch(`${import.meta.env.API_URL}/users/`, {
+        method: 'GET',
+      });
+      
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.message || 'Failed to fetch doctor patients');
+      }
+      
+      return await response.json();
+    } catch (error) {
+      console.error('Error fetching doctor patients:', error);
+      throw error;
+    }
+  }
 };
 
 // Main PatientSearch Component
@@ -240,45 +337,81 @@ const PatientSearch = () => {
   const [searchResults, setSearchResults] = useState([]);
   const [linkedPatients, setLinkedPatients] = useState([]);
   const [isSearching, setIsSearching] = useState(false);
+  const [error, setError] = useState(null);
+  
+  // Load doctor's linked patients on component mount
+  useEffect(() => {
+    const fetchLinkedPatients = async () => {
+      try {
+        const data = await PatientService.getDoctorPatients();
+        setLinkedPatients(data);
+      } catch (err) {
+        toast(`Failed to load your patients: ${err.message}`, "error");
+      }
+    };
+    
+    fetchLinkedPatients();
+  }, []);
 
   // Search for patients when query changes
   useEffect(() => {
     if (searchQuery.trim() === "") {
       setSearchResults([]);
+      setError(null);
       return;
     }
 
     setIsSearching(true);
+    setError(null);
     
-    // Simulate API call with setTimeout
-    const timeoutId = setTimeout(() => {
-      const filteredPatients = mockPatients.filter(patient => 
-        patient.name.toLowerCase().includes(searchQuery.toLowerCase())
-      );
-      setSearchResults(filteredPatients);
-      setIsSearching(false);
+    // Debounce the API call with setTimeout
+    const timeoutId = setTimeout(async () => {
+      try {
+        const data = await PatientService.searchPatients(searchQuery);
+        setSearchResults(data);
+        setIsSearching(false);
+      } catch (err) {
+        setError(err.message);
+        setSearchResults([]);
+        setIsSearching(false);
+      }
     }, 500);
 
     return () => clearTimeout(timeoutId);
   }, [searchQuery]);
 
   // Handle adding patient to doctor
-  const handleAddPatient = (patient) => {
+  const handleAddPatient = async (patient) => {
     // Check if patient is already linked
     if (linkedPatients.some(p => p.id === patient.id)) {
       toast("Patient is already linked to your account");
       return;
     }
 
-    // Update linked patients
-    setLinkedPatients([...linkedPatients, patient]);
-    toast("Patient added successfully");
+    try {
+      // Call API to add patient
+      await PatientService.addPatientToDoctor(patient.id);
+      
+      // Update UI
+      setLinkedPatients([...linkedPatients, patient]);
+      toast("Patient added successfully");
+    } catch (err) {
+      toast(`Failed to add patient: ${err.message}`, "error");
+    }
   };
 
   // Handle removing linked patient
-  const handleRemovePatient = (patientId) => {
-    setLinkedPatients(linkedPatients.filter(p => p.id !== patientId));
-    toast("Patient removed from your list");
+  const handleRemovePatient = async (patientId) => {
+    try {
+      // Call API to remove patient
+      await PatientService.removePatientFromDoctor(patientId);
+      
+      // Update UI
+      setLinkedPatients(linkedPatients.filter(p => p.id !== patientId));
+      toast("Patient removed from your list");
+    } catch (err) {
+      toast(`Failed to remove patient: ${err.message}`, "error");
+    }
   };
 
   return (
@@ -317,6 +450,7 @@ const PatientSearch = () => {
               isSearching={isSearching}
               linkedPatients={linkedPatients}
               handleAddPatient={handleAddPatient}
+              error={error}
             />
           </div>
 
