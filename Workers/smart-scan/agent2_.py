@@ -79,8 +79,8 @@ def agent2_(session_id):
     insights_ = generate_insights(context)
     return insights_
 
-
-if __name__ == "__main__":
-    session_id = "6b17502c-c6ec-44c5-b8f8-cc1d1fd3a009"
-    insights = agent2_(session_id)
-    print(insights)
+# Testing
+# if __name__ == "__main__":
+#     session_id = "6b17502c-c6ec-44c5-b8f8-cc1d1fd3a009"
+#     insights = agent2_(session_id)
+#     print(insights)

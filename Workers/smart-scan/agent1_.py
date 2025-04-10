@@ -34,7 +34,7 @@ def parse_json(json_data):
 
 # Chunking text
 def chunk_texts(docs):
-    splitter = RecursiveCharacterTextSplitter(chunk_size=500, chunk_overlap=50)
+    splitter = RecursiveCharacterTextSplitter(chunk_size=1000, chunk_overlap=50)
     return splitter.split_documents(docs)
 
 # Creating embeddings and storing in Chroma
@@ -53,8 +53,6 @@ def store_chroma(docs, collection_name=None):
         persist_directory=persist_directory
     )
     retrieved_docs = vector_db.get()
-    for i, doc in enumerate(retrieved_docs["documents"]):
-        print(f"Document {i+1}:\n{doc}\n{'-'*80}")
     return session_id, vector_db
 
 def agent1_(json_data, pdf_links):
@@ -77,16 +75,17 @@ def agent1_(json_data, pdf_links):
     session_id, _ = store_chroma(chunked_docs)
     return session_id
 
-if __name__ == "__main__":
-    json_input = {
-        "prior_medications": "Paracetamol, Ibuprofen",
-        "family_diseases": "Diabetes, Hypertension",
-        "allergies": "Penicillin",
-        "recent_blood_test": "Normal RBC, low hemoglobin"
-    }
+# Testing 
+# if __name__ == "__main__":
+#     json_input = {
+#         "prior_medications": "Paracetamol, Ibuprofen",
+#         "family_diseases": "Diabetes, Hypertension",
+#         "allergies": "Penicillin",
+#         "recent_blood_test": "Normal RBC, low hemoglobin"
+#     }
 
-    pdf_links = ["https://res.cloudinary.com/df0v2yuha/raw/upload/v1744267357/patients/documents/hlx6mwsnhsiebkeo91lg"]
+#     pdf_links = ["https://res.cloudinary.com/df0v2yuha/raw/upload/v1744267357/patients/documents/hlx6mwsnhsiebkeo91lg"]
 
-    session = agent1_(json_input, pdf_links)
-    print("ChromaDB session created:", session)
+#     session = agent1_(json_input, pdf_links)
+#     print("ChromaDB session created:", session)
 # print("Agent 1 is ready to process data.")
