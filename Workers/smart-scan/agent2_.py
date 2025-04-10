@@ -54,8 +54,23 @@ def generate_insights(context):
     )
 
     chain = prompt | llm
+    response = chain.invoke({"context": context})
+    import re
+    import json
+    
+    # Remove code block markers and language identifier if present
+    response_text = response
+    json_match = re.search(r'```(?:json)?\s*([\s\S]+?)```', response_text, re.DOTALL)
+    
+    if json_match:
+        # Extract content between code block markers
+        json_str = json_match.group(1).strip()
+    else:
+        # If no code blocks, use the whole response
+        json_str = response_text.strip()
 
-    return chain.invoke({"context": context})
+    parsed_json = json.loads(json_str)
+    return parsed_json
 
 def build_context(docs):
     return "\n\n".join([doc.page_content for doc in docs])
@@ -77,10 +92,11 @@ def agent2_(session_id):
     docs = retrieve_context(vector_db, query="Summarize the entire patient history and health reports.")
     context = build_context(docs)
     insights_ = generate_insights(context)
+    # print("Here agent2")
     return insights_
 
-# Testing
+# # Testing
 # if __name__ == "__main__":
-#     session_id = "6b17502c-c6ec-44c5-b8f8-cc1d1fd3a009"
+#     session_id = "0864abfd-4b0c-4cf2-a887-b5a59fd2828b"
 #     insights = agent2_(session_id)
 #     print(insights)

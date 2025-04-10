@@ -55,7 +55,7 @@ def store_chroma(docs, collection_name=None):
     retrieved_docs = vector_db.get()
     return session_id, vector_db
 
-def agent1_(json_data, pdf_links):
+def agent1_(json_data):
     all_docs = []
 
     # JSON data processing
@@ -64,28 +64,35 @@ def agent1_(json_data, pdf_links):
     all_docs.extend(json_docs)
 
     # PDF links processing
+    pdf_links = json_data.get("documents", [])
     for pdf_link in pdf_links:
         pdf_docs = fetch_and_extract_pdf_text(pdf_link)
         all_docs.extend(pdf_docs)
-    
+
     # Chunking
     chunked_docs = chunk_texts(all_docs)
 
-    # store to chroma
+    # Store to Chroma
     session_id, _ = store_chroma(chunked_docs)
+    print("Here agent1")
     return session_id
 
-# Testing 
+# # Testing 
 # if __name__ == "__main__":
-#     json_input = {
-#         "prior_medications": "Paracetamol, Ibuprofen",
-#         "family_diseases": "Diabetes, Hypertension",
-#         "allergies": "Penicillin",
-#         "recent_blood_test": "Normal RBC, low hemoglobin"
-#     }
-
-#     pdf_links = ["https://res.cloudinary.com/df0v2yuha/raw/upload/v1744267357/patients/documents/hlx6mwsnhsiebkeo91lg"]
-
-#     session = agent1_(json_input, pdf_links)
+    # json_input = {
+    #     "fullName": "Joycee Mittal",
+    #     "age": 56,
+    #     "gender": "Female",
+    #     "bloodGroup": "AB+",
+    #     "dateOfBirth": "1968-02-24",
+    #     "medicalHistory": "Has some Asthma Problems",
+    #     "currentMedications": "Has taken medicines for Asthma",
+    #     "familyMedicalHistory": "All Good",
+    #     "documents": [
+    #         "https://res.cloudinary.com/df0v2yuha/raw/upload/v1744267357/patients/documents/hlx6mwsnhsiebkeo91lg"
+    #     ],
+    #     "summary": []
+    # }
+#     session = agent1_(json_input)
 #     print("ChromaDB session created:", session)
-# print("Agent 1 is ready to process data.")
+# # print("Agent 1 is ready to process data.")
