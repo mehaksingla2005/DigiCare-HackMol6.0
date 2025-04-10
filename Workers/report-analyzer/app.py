@@ -1,16 +1,16 @@
 import streamlit as st
 import google.generativeai as genai
 from PIL import Image
-import PyPDF2
+from langchain_community.document_loaders import PyPDFLoader
+import requests
 import tempfile
 import os
 from google.api_core import exceptions
 from dotenv import load_dotenv
 import time
+from urllib.parse import unquote
 
 load_dotenv()
-
-
 
 api_key = os.getenv("GEMINI_API_KEY")
 if not api_key:
@@ -25,25 +25,20 @@ RETRY_DELAY = 2  # seconds
 
 def analyze_medical_report(content, content_type):
     prompt = """You are an AI medical assistant that answers queries based on the given context and relevant medical knowledge. 
-Here are some guidelines:
-- Prioritize information from the provided documents but supplement with general medical knowledge when necessary.
-- Ensure accuracy, citing sources from the document where applicable.
-- Provide confidence scoring based on probability and reasoning.
-- Be concise, informative, and avoid speculation.
-YOU WILL ANALYSE ONLY MEDICAL DATA, if other CONTEXT is PASSED you will say "Provide Relevant Medical Data. Thanks"
-Answer:
-- **Response:** 
-- **Reasoning:** (explain why this answer is correct and any potential limitations)
+    Here are some guidelines:
+    - Prioritize information from the provided documents but supplement with general medical knowledge when necessary.
+    - Ensure accuracy, citing sources from the document where applicable.
+    - Provide confidence scoring based on probability and reasoning.
+    - Be concise, informative, and avoid speculation.
+    YOU WILL ANALYSE ONLY MEDICAL DATA, if other CONTEXT is PASSED you will say "Provide Relevant Medical Data. Thanks"
+    Answer:
+    - **Response:** 
+    - **Reasoning:** (explain why this answer is correct and any potential limitations)
 """
     
     for attempt in range(MAX_RETRIES):
         try:
-            if content_type == "image":
-                response = model.generate_content([prompt, content])
-            else:  # text
-                # Gemini 1.5 Flash can handle larger inputs, so we'll send the full text
-                response = model.generate_content(f"{prompt}\n\n{content}")
-            
+            response = model.generate_content(f"{prompt}\n\n{content}")
             return response.text
         except exceptions.GoogleAPIError as e:
             if attempt < MAX_RETRIES - 1:
@@ -68,81 +63,57 @@ def fallback_analysis(content, content_type):
         5. Note: This is a simplified analysis due to temporary unavailability of the AI service. For a comprehensive analysis, please try again later.
         """
 
-def extract_text_from_pdf(pdf_file):
-    pdf_reader = PyPDF2.PdfReader(pdf_file)
-    text = ""
-    for page in pdf_reader.pages:
-        text += page.extract_text()
-    return text
+def extract_text_from_pdf(pdf_url):
+    # Download the PDF from the URL
+    response = requests.get(pdf_url)
+    if response.status_code != 200:
+        st.error(f"Failed to download the PDF from URL: {pdf_url}")
+        return None
+    
+    # Save the PDF to a temporary file
+    with tempfile.NamedTemporaryFile(delete=False, suffix='.pdf') as tmp_file:
+        tmp_file.write(response.content)
+        tmp_file_path = tmp_file.name
+    
+    # Use PyPDFLoader to load the PDF
+    loader = PyPDFLoader(tmp_file_path)
+    docs = loader.load()  # Assuming this returns a structured document or text
+    
+    os.unlink(tmp_file_path)  # Clean up the temporary file
+
+    # Assuming docs is a list of document objects, extract the text
+    if docs and isinstance(docs, list):
+        text = "\n".join([doc.page_content for doc in docs])  # Adjust based on structure
+        return text
+    return None
+
 
 def main():
     st.set_page_config(page_title="AI Medical Report Analyzer", layout="wide")
     st.title("🩺 AI-driven Medical Report Analyzer")
-    st.write("Upload a medical report (Image/PDF) for AI-powered analysis.")
-    
-    st.markdown(
-        """
-        <style>
-            .upload-box {
-                background-color: #f8f9fa;
-                padding: 20px;
-                border-radius: 10px;
-                border: 1px solid #ddd;
-                box-shadow: 2px 2px 10px rgba(0,0,0,0.1);
-                text-align: center;
-                margin-bottom: 20px;
-            }
-            .stButton>button {
-                background-color: #4CAF50;
-                color: white;
-                border-radius: 5px;
-                padding: 10px 24px;
-            }
-            .stSpinner {
-                color: #FF5733;
-            }
-        </style>
-        """, unsafe_allow_html=True)
-    
-    file_type = st.radio("Select file type:", ("Image", "PDF"))
-    st.markdown('<div class="upload-box">', unsafe_allow_html=True)
-    
-    if file_type == "Image":
-        uploaded_file = st.file_uploader("Choose a medical report image", type=["jpg", "jpeg", "png"], key="image")
-        st.markdown('</div>', unsafe_allow_html=True)
-        
-        if uploaded_file is not None:
-            image = Image.open(uploaded_file)
-            st.image(image, caption="Uploaded Medical Report", use_column_width=True)
-            
-            if st.button("🔍 Analyze Image Report"):
-                with st.spinner("Analyzing the medical report image..."):
-                    analysis = analyze_medical_report(image, "image")
-                st.subheader("📊 Analysis Results:")
-                st.write(analysis)
-    
+    query_params = st.query_params
+    print(f"Query Parameters: {query_params}")  # Debugging line
+# Check if 'pdf_link' exists in the query parameters
+    if 'pdf_link' in query_params:
+        pdf_url = unquote(query_params['pdf_link'])
+        print(f"PDF URL: {pdf_url}")  # Debugging line
     else:
-        uploaded_file = st.file_uploader("Choose a medical report PDF", type=["pdf"], key="pdf")
-        st.markdown('</div>', unsafe_allow_html=True)
-        
-        if uploaded_file is not None:
-            with tempfile.NamedTemporaryFile(delete=False, suffix='.pdf') as tmp_file:
-                tmp_file.write(uploaded_file.getvalue())
-                tmp_file_path = tmp_file.name
-            
-            with open(tmp_file_path, 'rb') as pdf_file:
-                pdf_text = extract_text_from_pdf(pdf_file)
-            
-            st.subheader("📄 Extracted Text Preview:")
-            st.text_area("Extracted Report Text", pdf_text[:1000] + "...", height=200, disabled=True)
-            
-            if st.button("🔍 Analyze PDF Report"):
-                with st.spinner("Analyzing the medical report PDF..."):
+        st.error("No PDF link found in the query parameters.")
+
+    if pdf_url:
+        # Display the PDF link as a preview (optional)
+        if st.button("🔍 Analyze PDF Report"):
+            with st.spinner("Analyzing the medical report..."):
+                # Extract text from the PDF at the given URL
+                pdf_text = extract_text_from_pdf(pdf_url)
+                
+                if pdf_text:                    
+                    # Perform the analysis on the extracted text
                     analysis = analyze_medical_report(pdf_text, "text")
-                st.subheader("📊 Analysis Results:")
-                st.write(analysis)
-            
-            os.unlink(tmp_file_path)
+                    st.subheader("📊 Analysis Results:")
+                    st.write(analysis)
+                else:
+                    st.error("Failed to extract text from the PDF.")
     
 if __name__ == "__main__":
     main()
