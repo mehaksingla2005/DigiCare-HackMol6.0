@@ -1,26 +1,72 @@
-import { Link, useNavigate } from 'react-router-dom';
-import { useState } from 'react';
+import { Link } from 'react-router-dom';
+import { useState, useEffect } from 'react';
 import { FiMenu, FiX } from 'react-icons/fi';
 import PropTypes from 'prop-types';
-import ProfileDropdown from './ProfileDropDown';
-import dummyUser from '../data/DummyUser';
+import ProfileDropdown from "./ProfileDropDown";
+import axios from 'axios';
 
 const Navbar = ({ isLoggedIn, user, onLogout }) => {
   const [menuOpen, setMenuOpen] = useState(false);
   const [showDropdown, setShowDropdown] = useState(false);
-  const navigate = useNavigate(); // Needed for navigating from profile dropdown
+  const [userData, setUserData] = useState(null);
+  const [loading, setLoading] = useState(false);
+
+  useEffect(() => {
+    const fetchUserData = async () => {
+      if (isLoggedIn && user && user.email) {
+        setLoading(true);
+        try {
+          const response = await axios.post(
+            `http://localhost:5000/users/getProfile`, 
+            { email: user.email }
+          );
+          setUserData(response.data);
+        } catch (error) {
+          console.error('Error fetching user profile:', error);
+        } finally {
+          setLoading(false);
+        }
+      }
+    };
+
+    fetchUserData();
+  }, [isLoggedIn, user]);
+
+  // Close dropdown when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      // Only close if the click is outside the dropdown and not on the profile image
+      if (showDropdown && event.target.closest('.profile-dropdown') === null && 
+          event.target.closest('.profile-image') === null) {
+        setShowDropdown(false);
+      }
+    };
+    
+    document.addEventListener('click', handleClickOutside);
+    return () => document.removeEventListener('click', handleClickOutside);
+  }, [showDropdown]);
+
+  // Get profile photo based on user type
+  const getProfilePhoto = () => {
+    if (!userData || !userData.typeId || !userData.typeId.profilePhoto) {
+      return '/default-avatar.png';
+    }
+    
+    return userData.typeId.profilePhoto;
+  };
 
   return (
     <nav className="bg-white fixed top-0 left-0 right-0 z-50 border-b border-gray-300 shadow-md">
       <div className="max-w-7xl mx-auto px-6 py-3 flex justify-between items-center">
+        
         {/* Logo */}
         <Link to="/" className="text-2xl font-bold text-gray-900 hover:text-blue-500 transition duration-300">
           DigiCare
         </Link>
 
         {/* Hamburger Menu Button */}
-        <button
-          className="lg:hidden text-gray-900 focus:outline-none"
+        <button 
+          className="lg:hidden text-gray-900 focus:outline-none" 
           onClick={() => setMenuOpen(!menuOpen)}
           aria-label="Toggle menu"
         >
@@ -36,51 +82,29 @@ const Navbar = ({ isLoggedIn, user, onLogout }) => {
           <Link to="/footer" className="hover:text-blue-500 transition duration-300">Contact Us</Link>
         </div>
 
-        {/* Authentication - Desktop View */}
+        {/* Authentication Links */}
         <div className="hidden lg:flex items-center space-x-4">
-          {isLoggedIn && user ? (
-            <>
-              {/* 👇 New: Avatar + Dropdown */}
-              <div className="relative">
-                <img
-                  src={user.avatarUrl || dummyUser.avatarUrl}
-                  alt="avatar"
-                  className="w-10 h-10 rounded-full cursor-pointer"
-                  onClick={() => setShowDropdown(!showDropdown)}
-                />
-                {showDropdown && (
-                  <div className="absolute right-0 mt-2 w-64 bg-white shadow-lg rounded-md z-50 p-4">
-                    <div className="flex items-center gap-4">
-                      <img
-                        src={user.avatarUrl || dummyUser.avatarUrl}
-                        alt="profile"
-                        className="w-14 h-14 rounded-full"
-                      />
-                      <div>
-                        <p className="font-bold text-gray-900">{user.name}</p>
-                        <p className="text-sm text-gray-500 capitalize">{user.userType}</p>
-                      </div>
-                    </div>
-                    <button
-                      onClick={() => {
-                        navigate(user.userType === 'doctor' ? '/doctor-dashboard' : '/patient-dashboard');
-                        setShowDropdown(false);
-                      }}
-                      className="mt-4 w-full bg-blue-500 text-white py-2 rounded hover:bg-blue-600 transition"
-                    >
-                      View Full Profile
-                    </button>
-                  </div>
-                )}
-              </div>
-              {/* 👇 Logout Button */}
-              <button
-                onClick={onLogout}
-                className="px-4 py-2 bg-red-500 text-white rounded-md hover:bg-red-600 transition duration-300"
+          {isLoggedIn ? (
+            <div className="relative">
+              <div 
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setShowDropdown(!showDropdown);
+                }}
+                className="cursor-pointer flex items-center profile-image"
               >
-                Logout
-              </button>
-            </>
+                <img
+                  src={getProfilePhoto()}
+                  alt="Profile"
+                  className="w-10 h-10 rounded-full object-cover border-2 border-gray-200"
+                />
+              </div>
+              {showDropdown && (
+                <div className="profile-dropdown">
+                  <ProfileDropdown user={userData} onLogout={onLogout} />
+                </div>
+              )}
+            </div>
           ) : (
             <>
               <Link to="/login" className="px-4 py-2 text-gray-900 hover:text-blue-500 transition duration-300">Login</Link>
@@ -90,21 +114,20 @@ const Navbar = ({ isLoggedIn, user, onLogout }) => {
         </div>
       </div>
 
-      {/* Mobile Menu Overlay */}
-      <div
+      {/* Mobile Menu */}
+      <div 
         className={`lg:hidden fixed inset-0 bg-black bg-opacity-50 transition-opacity duration-300 ${
-          menuOpen ? 'opacity-100 visible' : 'opacity-0 invisible'
+          menuOpen ? "opacity-100 visible" : "opacity-0 invisible"
         }`}
         onClick={() => setMenuOpen(false)}
-      />
+      ></div>
 
-      {/* Mobile Menu Drawer */}
-      <div
+      <div 
         className={`lg:hidden fixed top-0 right-0 w-64 h-full bg-white shadow-lg transform transition-transform duration-300 ${
-          menuOpen ? 'translate-x-0' : 'translate-x-full'
+          menuOpen ? "translate-x-0" : "translate-x-full"
         }`}
       >
-        <button
+        <button 
           className="absolute top-4 right-4 text-gray-900 focus:outline-none"
           onClick={() => setMenuOpen(false)}
           aria-label="Close menu"
@@ -113,31 +136,39 @@ const Navbar = ({ isLoggedIn, user, onLogout }) => {
         </button>
 
         <div className="flex flex-col items-center space-y-6 pt-16">
-          <Link to="/" className="text-gray-900 hover:text-blue-500" onClick={() => setMenuOpen(false)}>Home</Link>
-          <Link to="/explore" className="text-gray-900 hover:text-blue-500" onClick={() => setMenuOpen(false)}>Features</Link>
-          <Link to="/about" className="text-gray-900 hover:text-blue-500" onClick={() => setMenuOpen(false)}>About Us</Link>
-          <Link to="/Faq" className="text-gray-900 hover:text-blue-500" onClick={() => setMenuOpen(false)}>FAQs</Link>
-          <Link to="/footer" className="text-gray-900 hover:text-blue-500" onClick={() => setMenuOpen(false)}>Contact Us</Link>
+          <Link to="/" className="text-gray-900 hover:text-blue-500 transition duration-300" onClick={() => setMenuOpen(false)}>Home</Link>
+          <Link to="/explore" className="text-gray-900 hover:text-blue-500 transition duration-300" onClick={() => setMenuOpen(false)}>Features</Link>
+          <Link to="/about" className="text-gray-900 hover:text-blue-500 transition duration-300" onClick={() => setMenuOpen(false)}>About Us</Link>
+          <Link to="/Faq" className="text-gray-900 hover:text-blue-500 transition duration-300" onClick={() => setMenuOpen(false)}>FAQs</Link>
+          <Link to="/footer" className="text-gray-900 hover:text-blue-500 transition duration-300" onClick={() => setMenuOpen(false)}>Contact Us</Link>
 
-          {/* Auth Links - Mobile */}
-          <div className="flex flex-col space-y-4 pt-4">
-            {isLoggedIn && user ? (
-              <>
-                <span className="text-gray-700 text-center">{user.email}</span>
-                <button
-                  onClick={() => {
-                    onLogout();
-                    setMenuOpen(false);
+          {/* Auth Links for Mobile */}
+          <div className="flex flex-col items-center space-y-4 pt-4">
+            {isLoggedIn ? (
+              <div className="relative">
+                <div 
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    setShowDropdown(!showDropdown);
                   }}
-                  className="px-4 py-2 bg-red-500 text-white rounded-md hover:bg-red-600 transition duration-300"
+                  className="cursor-pointer flex items-center profile-image"
                 >
-                  Logout
-                </button>
-              </>
+                  <img
+                    src={getProfilePhoto()}
+                    alt="Profile"
+                    className="w-10 h-10 rounded-full object-cover border-2 border-gray-200"
+                  />
+                </div>
+                {showDropdown && (
+                  <div className="profile-dropdown">
+                    <ProfileDropdown user={userData} onLogout={onLogout} />
+                  </div>
+                )}
+              </div>
             ) : (
               <>
-                <Link to="/login" className="text-gray-900 hover:text-blue-500" onClick={() => setMenuOpen(false)}>Login</Link>
-                <Link to="/register" className="text-gray-900 hover:text-blue-500" onClick={() => setMenuOpen(false)}>Register</Link>
+                <Link to="/login" className="text-gray-900 hover:text-blue-500 transition duration-300" onClick={() => setMenuOpen(false)}>Login</Link>
+                <Link to="/register" className="px-4 py-2 bg-blue-500 text-white rounded-md hover:bg-blue-600 transition duration-300" onClick={() => setMenuOpen(false)}>Register</Link>
               </>
             )}
           </div>
@@ -149,8 +180,14 @@ const Navbar = ({ isLoggedIn, user, onLogout }) => {
 
 Navbar.propTypes = {
   isLoggedIn: PropTypes.bool.isRequired,
-  user: PropTypes.object, // 👈 updated from userEmail to user object
-  onLogout: PropTypes.func.isRequired,
+  user: PropTypes.shape({
+    id: PropTypes.string,
+    email: PropTypes.string.isRequired,
+    fullname: PropTypes.string,
+    userType: PropTypes.string,
+    profileCompleted: PropTypes.bool
+  }),
+  onLogout: PropTypes.func.isRequired
 };
 
 export default Navbar;
