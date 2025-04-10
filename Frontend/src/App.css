@@ -1,42 +1,87 @@
-#root {
-  max-width: 1280px;
-  margin: 0 auto;
-  padding: 2rem;
-  text-align: center;
+.App {
+  font-family: 'Roboto', sans-serif;
+}
+html {
+  scroll-behavior: smooth;
 }
 
-.logo {
-  height: 6em;
-  padding: 1.5em;
-  will-change: filter;
-  transition: filter 300ms;
-}
-.logo:hover {
-  filter: drop-shadow(0 0 2em #646cffaa);
-}
-.logo.react:hover {
-  filter: drop-shadow(0 0 2em #61dafbaa);
+body, .app-container {
+  font-family: 'Roboto', sans-serif;
+  margin: 0;
+  padding: 0;
+  height: 100vh;
+  display: flex;
+  flex-direction: column;
 }
 
-@keyframes logo-spin {
-  from {
-    transform: rotate(0deg);
-  }
-  to {
-    transform: rotate(360deg);
-  }
+/* Styling for the navbar */
+.navbar {
+  background-color: #333;
+  color: #fff;
+  padding: 10px 20px;
+  border: #0cbbb4;
 }
 
-@media (prefers-reduced-motion: no-preference) {
-  a:nth-of-type(2) .logo {
-    animation: logo-spin infinite 20s linear;
-  }
+/* Styling for the components */
+.component {
+  flex: 1;
+  display: flex;
+  justify-content: center;
+  /* align-items: center; */
+  /* margin-top: auto; */
+  height: 100vh;
+  overflow: auto; 
+  margin: 0;
+  
 }
 
-.card {
-  padding: 2em;
+.component > * {
+  text-align: center; /* Center text horizontally */
+  max-width: 100%; /* Adjust as needed */
 }
 
-.read-the-docs {
-  color: #888;
+
+h2 {
+  font-size: 45px;
+}
+
+h3 {
+  font-size: 45px; /* Adjust as needed */
+}
+
+h2,
+h3 {
+    font-family: "Lobster", sans-serif; /* Specify the font family */
+    font-weight: bold; 
+}
+
+
+p {
+  font-size: 20px;
+}
+
+.a1 {
+  color: black !important;
+  font-size: 20px;
+}
+
+.a2 {
+  color: white !important;
+  font-size: 20px;
+}
+
+a:active,
+a:visited,
+a:hover{
+    text-decoration: underline #0cbbb4; /* Add underline */
+}
+
+#name {
+  font-size: 18px;
+  font-weight: bold;
+}
+
+#links {
+  font-size: 18px;
+
 }
