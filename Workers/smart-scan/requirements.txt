@@ -8,4 +8,6 @@ reportlab
 langchain_community
 langchain-chroma
 fastapi
-anyio
+asyncio
+uvicorn
+pydantic
