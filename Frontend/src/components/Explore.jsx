@@ -8,16 +8,16 @@ import erpPortal from './images/Erp.jpg';
 import multiLingualChat from './images/Chatbot.jpg';
 
 export default function Explore() {
-  const { loginWithRedirect, isAuthenticated } = useAuth0();
+//   const { loginWithRedirect, isAuthenticated } = useAuth0();
   const navigate = useNavigate();
 
-  const handleNavigation = (link) => {
-    if (!isAuthenticated) {
-      loginWithRedirect(); // Redirects to Auth0 login page
-    } else {
-      navigate(link); // Navigates to the feature page
-    }
-  };
+//   const handleNavigation = (link) => {
+//     if (!isAuthenticated) {
+//       loginWithRedirect(); // Redirects to Auth0 login page
+//     } else {
+//       navigate(link); // Navigates to the feature page
+//     }
+//   };
 
   const services = [
     { icon: medicalImage, title: "AI Image Analysis", description: "Unlock insights from X-rays, MRIs, and more with the power of AI. Fast, accurate, and insightful.", link: '/image-analysis', highlight: true },
