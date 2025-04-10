@@ -25,24 +25,31 @@ import UserProfile from "./components/UserProfile";
 function App() {
 
   const [isLoggedIn, setIsLoggedIn] = useState(false);
-  const [userEmail, setUserEmail] = useState('');
+const [userData, setUserData] = useState(null); // Store full user
 
-  const handleLogin = (loggedIn, email) => {
-    setIsLoggedIn(loggedIn);
-    setUserEmail(email);
-  };
+const handleLogin = (status, email, user) => {
+  setIsLoggedIn(status);
+  setUserData(user);
+};
 
-  const handleLogout = () => {
-    logout({ returnTo: window.location.origin });
-    setIsLoggedIn(false);
-    setUserEmail('');
-  };
+const handleLogout = () => {
+  // Clear token or session data if stored (optional)
+  localStorage.removeItem("authToken"); // if you stored token
+  localStorage.removeItem("user"); // if you stored user data
+
+  // Reset state
+  setIsLoggedIn(false);
+  setUserData(null);
+};
+
 
   return (
     <BrowserRouter>
       {/* Navbar appears on every page */}
       {/* <Navbar isLoggedIn={isLoggedIn} userEmail={userEmail} onLogout={handleLogout} /> */}
-      <Navbar/>
+      {/* <Navbar/> */}
+      <Navbar isLoggedIn={isLoggedIn} user={userData} onLogout={handleLogout} />
+
       <Routes>
         <Route path="/" element={<HomePage />} />
         {/* //<Route path="/login" element={<Login onLogin={handleLogin} />} /> */}

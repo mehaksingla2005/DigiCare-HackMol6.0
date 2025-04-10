@@ -24,7 +24,8 @@ const Login = ({ onLogin }) => {
       if (response.ok) {
         const data = await response.json();
         console.log('Login successful:', data.message);
-        onLogin(true, email);
+        onLogin(true, email, data.user); // Pass entire user object
+
         
         // Handle navigation based on user type and profile completion
         if (data.user.userType === 'doctor') {
