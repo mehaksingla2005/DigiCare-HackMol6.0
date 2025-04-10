@@ -1,242 +1,5 @@
-// import React, { useEffect, useState } from 'react';
-// import { Link } from 'react-router-dom';
-// import { FaFilePdf } from 'react-icons/fa';
-
-// const UserProfile = ({ isLoggedIn, user, onLogout }) => {
-//   const [profileData, setProfileData] = useState(null);
-//   const [patients, setPatients] = useState([]); // for doctor: list of patients
-//   const [loading, setLoading] = useState(true);
-//   const [error, setError] = useState(null);
-
-//   // Fetch full profile details from your API using the email from the passed user
-//   useEffect(() => {
-//     if (isLoggedIn && user && user.email) {
-//       fetch(`${import.meta.env.VITE_API_URL}/users/getProfile`, {
-//         method: 'POST',
-//         headers: { 'Content-Type': 'application/json' },
-//         body: JSON.stringify({ email: user.email })
-//       })
-//         .then((res) => {
-//           if (!res.ok) {
-//             throw new Error('Failed to fetch profile data.');
-//           }
-//           return res.json();
-//         })
-//         .then((data) => {
-//           setProfileData(data);
-//           setLoading(false);
-//         })
-//         .catch((err) => {
-//           setError(err.message);
-//           setLoading(false);
-//         });
-//     }
-//   }, [isLoggedIn, user]);
-
-//   // If the user is a doctor, fetch the list of patients under their care.
-//   useEffect(() => {
-//     if (
-//       profileData &&
-//       profileData.userType === 'doctor' &&
-//       profileData.typeId &&
-//       profileData.typeId.id
-//     ) {
-//       fetch(`${import.meta.env.VITE_API_URL}/doctors/${profileData.typeId.id}/patients`)
-//         .then((res) => {
-//           if (!res.ok) throw new Error('Failed to fetch patients.');
-//           return res.json();
-//         })
-//         .then((data) => setPatients(data))
-//         .catch((err) => console.error(err));
-//     }
-//   }, [profileData]);
-
-//   if (loading) {
-//     return (
-//       <div className="min-h-screen flex items-center justify-center text-xl text-blue-700">
-//         Loading profile...
-//       </div>
-//     );
-//   }
-
-//   if (error) {
-//     return (
-//       <div className="min-h-screen flex items-center justify-center text-red-500 text-xl">
-//         {error}
-//       </div>
-//     );
-//   }
-
-//   if (!profileData) {
-//     return (
-//       <div className="min-h-screen flex items-center justify-center text-xl text-blue-700">
-//         No profile data available.
-//       </div>
-//     );
-//   }
-
-//   // Determine type
-//   const isDoctor = profileData.userType === 'doctor';
-//   const isPatient = profileData.userType === 'patient';
-//   // Detailed profile data from your type-specific model
-//   const details = profileData.typeId || {};
-
-//   return (
-//     <div className="min-h-screen bg-blue-50 py-10 mt-10">
-//       <div className="max-w-6xl mx-auto p-6">
-//         {/* Profile Header */}
-//         <div className="bg-gradient-to-r from-blue-800 to-blue-500 shadow-2xl rounded-xl p-8 flex flex-col md:flex-row items-center text-white">
-//           <img
-//             src={details.profilePhoto || '/placeholder.png'}
-//             alt="Profile"
-//             className="w-36 h-36 rounded-full object-cover border-4 border-white shadow-lg"
-//           />
-//           <div className="mt-6 md:mt-0 md:ml-10 text-center md:text-left">
-//             <h1 className="text-4xl font-extrabold">{details.fullName || profileData.fullname}</h1>
-//             <p className="text-lg opacity-90 mt-2">{profileData.email}</p>
-//             {isPatient && (
-//               <div className="mt-4 space-y-1">
-//                 <p className="text-sm">Phone: {details.phoneNumber || 'N/A'}</p>
-//                 <p className="text-sm">
-//                   Date of Birth:{" "}
-//                   {details.dateOfBirth ? new Date(details.dateOfBirth).toLocaleDateString() : "N/A"}
-//                 </p>
-//                 <p className="text-sm">Age: {details.age || 'N/A'}</p>
-//                 <p className="text-sm">Gender: {details.gender || 'N/A'}</p>
-//                 <p className="text-sm">Blood Group: {details.bloodGroup || 'N/A'}</p>
-//               </div>
-//             )}
-//             {isDoctor && (
-//               <div className="mt-4 space-y-1">
-//                 <p className="text-sm">Phone: {details.phoneNumber || 'N/A'}</p>
-//                 <p className="text-sm">
-//                   Experience: {details.yearsOfExperience || 'N/A'} years
-//                 </p>
-//                 {details.specializations && (
-//                   <p className="text-sm">
-//                     Specializations: {details.specializations.join(', ')}
-//                   </p>
-//                 )}
-//               </div>
-//             )}
-//             <div className="mt-6 space-x-4">
-//               <Link
-//                 to="/edit-profile"
-//                 className="px-5 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-full transition-shadow shadow-md"
-//               >
-//                 Edit Profile
-//               </Link>
-//               {isPatient && (
-//                 <Link
-//                   to="/analyze-reports"
-//                   className="px-5 py-2 bg-teal-500 hover:bg-teal-600 text-white rounded-full transition-shadow shadow-md"
-//                 >
-//                   Analyze Reports
-//                 </Link>
-//               )}
-//               <button
-//                 onClick={onLogout}
-//                 className="px-5 py-2 bg-red-500 hover:bg-red-600 text-white rounded-full transition-shadow shadow-md"
-//               >
-//                 Logout
-//               </button>
-//             </div>
-//           </div>
-//         </div>
-
-//         {/* Patient Specific Section */}
-//         {isPatient && (
-//           <div className="mt-10">
-//             {/* Medical Reports */}
-//             <h2 className="text-3xl font-semibold text-blue-800 mb-6">Medical Reports</h2>
-//             <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-8">
-//               {details.documents && details.documents.length > 0 ? (
-//                 details.documents.map((doc, idx) => (
-//                   <a
-//                     key={idx}
-//                     href={doc}
-//                     target="_blank"
-//                     rel="noopener noreferrer"
-//                     className="block p-6 bg-white rounded-xl shadow-lg hover:shadow-2xl transition duration-300"
-//                   >
-//                     <div className="flex items-center space-x-3">
-//                       <FaFilePdf className="w-10 h-10 text-red-500" />
-//                       <span className="text-xl font-medium text-gray-700 truncate">Report {idx + 1}</span>
-//                     </div>
-//                   </a>
-//                 ))
-//               ) : (
-//                 <p className="text-gray-600 text-lg">No medical reports available.</p>
-//               )}
-//             </div>
-
-//             {/* Associated Doctors */}
-//             <div className="mt-10">
-//               <h2 className="text-3xl font-semibold text-blue-800 mb-6">Associated Doctors</h2>
-//               {details.doctors && details.doctors.length > 0 ? (
-//                 <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-8">
-//                   {details.doctors.map((doc, idx) => (
-//                     <div
-//                       key={idx}
-//                       className="bg-white rounded-xl shadow-lg p-6 flex flex-col items-center hover:shadow-2xl transition duration-300"
-//                     >
-//                       <img
-//                         src={doc.profilePhoto || '/placeholder.png'}
-//                         alt={doc.fullName}
-//                         className="w-20 h-20 rounded-full object-cover border-2 border-blue-500"
-//                       />
-//                       <h3 className="mt-4 text-xl font-semibold text-gray-800">{doc.fullName}</h3>
-//                       {doc.specializations && (
-//                         <p className="text-gray-600 text-sm text-center">
-//                           {doc.specializations.join(', ')}
-//                         </p>
-//                       )}
-//                     </div>
-//                   ))}
-//                 </div>
-//               ) : (
-//                 <p className="text-gray-600 text-lg">No associated doctors.</p>
-//               )}
-//             </div>
-//           </div>
-//         )}
-
-//         {/* Doctor Specific Section */}
-//         {isDoctor && (
-//           <div className="mt-10">
-//             <h2 className="text-3xl font-semibold text-blue-800 mb-6">Patients Under Your Care</h2>
-//             {patients && patients.length > 0 ? (
-//               <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-8">
-//                 {patients.map((patient) => (
-//                   <div
-//                     key={patient.id}
-//                     className="bg-white rounded-xl shadow-lg p-6 flex flex-col items-center hover:shadow-2xl transition duration-300"
-//                   >
-//                     <img
-//                       src={patient.profilePhoto || '/placeholder.png'}
-//                       alt={patient.fullName}
-//                       className="w-20 h-20 rounded-full object-cover border-2 border-blue-500"
-//                     />
-//                     <h3 className="mt-4 text-xl font-semibold text-gray-800">{patient.fullName}</h3>
-//                     <p className="text-gray-600 text-sm">Age: {patient.age}</p>
-//                   </div>
-//                 ))}
-//               </div>
-//             ) : (
-//               <p className="text-gray-600 text-lg">No patients found.</p>
-//             )}
-//           </div>
-//         )}
-//       </div>
-//     </div>
-//   );
-// };
-
-// export default UserProfile;
-
-
 import React, { useEffect, useState } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { FaFilePdf } from 'react-icons/fa';
 
 const UserProfile = ({ isLoggedIn, user, onLogout }) => {
@@ -244,6 +7,8 @@ const UserProfile = ({ isLoggedIn, user, onLogout }) => {
   const [patients, setPatients] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+
+  const navigate = useNavigate();
 
   useEffect(() => {
     if (isLoggedIn && user?.email) {
@@ -282,6 +47,11 @@ const UserProfile = ({ isLoggedIn, user, onLogout }) => {
     }
   }, [profileData]);
 
+  const handleLogout = () => {
+    onLogout();
+    navigate('/');
+  };
+
   if (loading) return <div className="min-h-screen flex items-center justify-center text-xl text-blue-700">Loading profile...</div>;
   if (error) return <div className="min-h-screen flex items-center justify-center text-red-500 text-xl">{error}</div>;
   if (!profileData) return <div className="min-h-screen flex items-center justify-center text-xl text-blue-700">No profile data available.</div>;
@@ -294,7 +64,6 @@ const UserProfile = ({ isLoggedIn, user, onLogout }) => {
     <div className="min-h-screen py-10 mt-10">
       <div className="max-w-5xl mx-auto px-6">
         <div className="shadow-2xl rounded-xl p-8 border border-gray-200">
-          {/* Header Section */}
           <div className="flex flex-col md:flex-row items-center md:items-start">
             <img
               src={details.profilePhoto || '/placeholder.png'}
@@ -307,15 +76,11 @@ const UserProfile = ({ isLoggedIn, user, onLogout }) => {
               <p className="text-sm text-gray-500 mt-1">User Type: {profileData.userType}</p>
               <div className="mt-4 flex gap-3 flex-wrap">
                 <Link to="/edit-profile" className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-full shadow">Edit Profile</Link>
-                {isPatient && (
-                  <Link to="/analyze-reports" className="bg-teal-600 hover:bg-teal-700 text-white px-4 py-2 rounded-full shadow">Analyze All Reports</Link>
-                )}
-                <button onClick={onLogout} className="bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded-full shadow">Logout</button>
+                <button onClick={handleLogout} className="bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded-full shadow">Logout</button>
               </div>
             </div>
           </div>
 
-          {/* Details Section */}
           <div className="mt-8">
             <h2 className="text-2xl font-semibold mb-4">User Details</h2>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-gray-700">
@@ -338,7 +103,6 @@ const UserProfile = ({ isLoggedIn, user, onLogout }) => {
             </div>
           </div>
 
-          {/* Reports Section */}
           {isPatient && (
             <div className="mt-10">
               <h2 className="text-2xl font-semibold mb-4">Uploaded Medical Reports</h2>
@@ -365,7 +129,6 @@ const UserProfile = ({ isLoggedIn, user, onLogout }) => {
             </div>
           )}
 
-          {/* Associated Doctors (for patients) */}
           {isPatient && details.doctors?.length > 0 && (
             <div className="mt-10">
               <h2 className="text-2xl font-semibold mb-4">Associated Doctors</h2>
@@ -383,23 +146,50 @@ const UserProfile = ({ isLoggedIn, user, onLogout }) => {
             </div>
           )}
 
-          {/* Patients under doctor */}
-          {isDoctor && patients.length > 0 && (
+          {isDoctor && (
             <div className="mt-10">
-              <h2 className="text-2xl font-semibold mb-4">Patients Under Your Care</h2>
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                {patients.map((patient) => (
-                  <div key={patient.id} className="flex items-center p-4 border rounded-lg shadow hover:shadow-md transition">
-                    <img src={patient.profilePhoto || '/placeholder.png'} alt={patient.fullName} className="w-16 h-16 rounded-full object-cover border-2 border-blue-500 mr-4" />
-                    <div>
-                      <h3 className="text-lg font-medium">{patient.fullName}</h3>
-                      <p className="text-sm text-gray-600">Age: {patient.age}</p>
-                    </div>
-                  </div>
-                ))}
+              <div className="flex justify-between items-center mb-4">
+                <h2 className="text-2xl font-semibold">Patients Under Your Care</h2>
+                <button
+                  onClick={() => navigate('/add-patient')}
+                  className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-md shadow"
+                >
+                  + Add Patient
+                </button>
               </div>
+              {patients.length > 0 ? (
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  {patients.map((patient) => (
+                    <div
+                      key={patient.id}
+                      className="border rounded-xl shadow-md hover:shadow-lg transition bg-white p-4 flex items-start gap-4"
+                    >
+                      <img
+                        src={patient.profilePhoto || '/placeholder.png'}
+                        alt={patient.fullName}
+                        className="w-16 h-16 rounded-full object-cover border-2 border-blue-500"
+                      />
+                      <div>
+                        <h3 className="text-lg font-bold">{patient.fullName}</h3>
+                        <p className="text-sm text-gray-600">Age: {patient.age || 'N/A'}</p>
+                        <p className="text-sm text-gray-600">Gender: {patient.gender || 'N/A'}</p>
+                        <p className="text-sm text-gray-600">Blood Group: {patient.bloodGroup || 'N/A'}</p>
+                        <Link
+                          to={`/view-patient/${patient.id}`}
+                          className="inline-block mt-2 text-blue-600 hover:underline text-sm"
+                        >
+                          View Profile
+                        </Link>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <p className="text-gray-500">No patients assigned yet.</p>
+              )}
             </div>
           )}
+
         </div>
       </div>
     </div>
@@ -407,4 +197,3 @@ const UserProfile = ({ isLoggedIn, user, onLogout }) => {
 };
 
 export default UserProfile;
-
