@@ -127,7 +127,7 @@ exports.login = async (req, res) => {
                 expiresIn: maxAge,
             }
         );
-
+        console.log(token)
         res.cookie("jwt", token, {
             httpOnly: true,
             maxAge: maxAge * 1000,
