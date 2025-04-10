@@ -1,6 +1,8 @@
 import "./App.css";
 import { BrowserRouter, Route, Routes } from "react-router-dom";
 import HomePage from "./components/HomePage";
+import PatientProfile from './components/PatientProfile';
+import DoctorProfile from './components/DoctorProfile';
 import { useEffect, useState } from "react";
 
 import FileUpload from "./components/FileUpload.jsx";
@@ -75,6 +77,8 @@ const handleLogout = () => {
           path="/profile"
           element={<UserProfile isLoggedIn={isLoggedIn} user={userData} onLogout={handleLogout} />}
         />
+        <Route path="/patient/profile/:id" element={<PatientProfile />} />
+        <Route path="/doctor/profile/:id" element={<DoctorProfile />} />
 
       </Routes>
       

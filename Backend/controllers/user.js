@@ -124,7 +124,6 @@ exports.getUserProfile = async (req, res) => {
           };
         }
       }
-  
       res.status(200).json(userData);
     } catch (error) {
       console.error('Error fetching user profile:', error);

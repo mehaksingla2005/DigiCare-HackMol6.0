@@ -120,7 +120,8 @@ exports.getPatientProfile = async (req, res) => {
   }
 };
 
-// Update patient profile
+// controllers/patient.js - updatePatientProfile controller function
+
 exports.updatePatientProfile = async (req, res) => {
   try {
     const patientId = req.params.id;
@@ -194,6 +195,46 @@ exports.updatePatientProfile = async (req, res) => {
     console.error('Error updating patient profile:', error);
     res.status(500).json({
       error: 'Failed to update patient profile',
+      details: error.message
+    });
+  }
+};
+
+// This is already in your controller, no need to modify:
+exports.removeDocument = async (req, res) => {
+  try {
+    const { patientId, documentUrl } = req.body;
+    
+    if (!patientId || !documentUrl) {
+      return res.status(400).json({ 
+        message: 'Patient ID and document URL are required' 
+      });
+    }
+    
+    const patient = await Patient.findById(patientId);
+    
+    if (!patient) {
+      return res.status(404).json({ message: 'Patient not found' });
+    }
+    
+    // Remove the document URL from the documents array
+    const updatedDocuments = patient.documents.filter(doc => doc !== documentUrl);
+    
+    // Update the patient record
+    await Patient.findByIdAndUpdate(
+      patientId,
+      { $set: { documents: updatedDocuments } }
+    );
+    
+    res.status(200).json({
+      message: 'Document removed successfully',
+      remainingDocuments: updatedDocuments
+    });
+    
+  } catch (error) {
+    console.error('Error removing document:', error);
+    res.status(500).json({
+      error: 'Failed to remove document',
       details: error.message
     });
   }

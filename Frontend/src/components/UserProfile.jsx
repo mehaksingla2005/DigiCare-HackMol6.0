@@ -75,7 +75,24 @@ const UserProfile = ({ isLoggedIn, user, onLogout }) => {
               <p className="text-gray-600 mt-1">{profileData.email}</p>
               <p className="text-sm text-gray-500 mt-1">User Type: {profileData.userType}</p>
               <div className="mt-4 flex gap-3 flex-wrap">
-                <Link to="/edit-profile" className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-full shadow">Edit Profile</Link>
+                
+                {/* <Link to="/edit-profile" className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-full shadow">Edit Profile</Link> */}
+                {isPatient && (
+                  <Link
+                    to={`/patient/profile/${details.id}`}
+                    className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-full shadow"
+                  >
+                    Edit Profile
+                  </Link>
+                )}
+                {isDoctor && (
+                  <Link
+                    to={`/doctor/profile/${details.id}`}
+                    className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-full shadow"
+                  >
+                    Edit Profile
+                  </Link>
+                )}
                 <button onClick={handleLogout} className="bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded-full shadow">Logout</button>
               </div>
             </div>
