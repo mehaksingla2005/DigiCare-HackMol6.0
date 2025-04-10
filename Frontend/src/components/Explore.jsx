@@ -1,7 +1,5 @@
-import { useAuth0 } from "@auth0/auth0-react";
+
 import { useNavigate } from "react-router-dom";
-
-
 import medicalImage from './images/docnew.jpeg';
 import patientHistory from './images/Analysis.jpg';
 import symptomCorrelation from './images/docnew.jpeg';
