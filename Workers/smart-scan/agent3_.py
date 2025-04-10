@@ -5,6 +5,7 @@ from reportlab.lib.enums import TA_CENTER
 from reportlab.lib.colors import HexColor
 import os
 from datetime import datetime
+from io import BytesIO
 
 def format_key_as_title(key):
     """Convert snake_case to Title Case with proper spacing."""
@@ -144,50 +145,59 @@ def agent3_(json_data, output_path=None, title="Medical Insight Report"):
             elements.append(Spacer(1, 8))
     
     # Build document
+    buffer = BytesIO()
     try:
+        doc = SimpleDocTemplate(buffer, pagesize=A4)  # or use your layout
         doc.build(elements)
-        return os.path.abspath(output_path)
+        buffer.seek(0)
+        return StreamingResponse(
+            buffer,
+            media_type="application/pdf",
+            headers={
+                "Content-Disposition": "attachment; filename=report.pdf"
+            }
+        )
     except Exception as e:
         print(f"Error generating PDF: {str(e)}")
-        return None
+        return {"error": "Failed to generate PDF"}
 
 # Test the function
-if __name__ == "__main__":
-    json_data = {
-        "patient_summary": "Ms. Joycee Mittal, a 56-year-old female, presented for a health check-up.  She reports a history of home asthma problems and has been taking medication for it.  Family medical history is reported as 'All Good'.",
-        "timeline": [
-            {
-            "date": "11/2/2025",
-            "event": "Blood test (SwasthFit Super 1, Liver & Kidney Panel)",
-            "finding": "Results show Creatinine (0.49 mg/dL), eGFR (estimated glomerular filtration rate) >59 mL/min/1.73m2 (G1 category), Urea (24.20 mg/dL), Urea Nitrogen (11.30 mg/dL), BUN/Creatinine Ratio (23), and Uric Acid (5.97 mg/dL). AST (SGOT) level is 25.0."
-            }
-        ],
-        "previous_medications": [
-            "Asthma medication"
-        ],
-        "current_health_status": "Patient reports home asthma problems.  Blood test reveals slightly elevated Urea, Urea Nitrogen, and Uric Acid levels. Creatinine and eGFR are within the normal range. AST is slightly elevated.  Further investigation may be needed to determine the significance of these findings.",
-        "allergies": [],
-        "family_history": "All Good (reported)",
-        "test_results": {
-            "blood_test": {
-            "Creatinine": "0.49 mg/dL (0.51 - 0.95 mg/dL)",
-            "eGFR": ">59 mL/min/1.73m2 (G1 category)",
-            "Urea": "24.20 mg/dL (17.00 - 43.00 mg/dL)",
-            "Urea Nitrogen": "11.30 mg/dL (6.00 - 20.00 mg/dL)",
-            "BUN/Creatinine Ratio": "23",
-            "Uric Acid": "5.97 mg/dL (2.60 - 6.00 mg/dL)",
-            "AST (SGOT)": "25.0"
-            },
-            "culture_test": [],
-            "imaging": []
-        },
-        "recommendations": [
-            "Review patient's asthma management plan.",
-            "Assess the significance of slightly elevated Urea, Urea Nitrogen, and Uric Acid levels. Consider further investigation to rule out underlying causes such as dehydration, diet, or kidney function issues.  A repeat blood test might be beneficial.",
-            "Evaluate the slightly elevated AST level.  Consider liver function tests to assess liver health.",
-            "Discuss lifestyle modifications, including diet and hydration, to manage elevated uric acid and potentially improve other blood markers.",
-            "Patient should be advised to follow up with her physician for further evaluation and management."
-        ]
-    }
-    output_path = agent3_(json_data)
-    print(f"PDF generated at: {output_path}")
+# if __name__ == "__main__":
+#     json_data = {
+#         "patient_summary": "Ms. Joycee Mittal, a 56-year-old female, presented for a health check-up.  She reports a history of home asthma problems and has been taking medication for it.  Family medical history is reported as 'All Good'.",
+#         "timeline": [
+#             {
+#             "date": "11/2/2025",
+#             "event": "Blood test (SwasthFit Super 1, Liver & Kidney Panel)",
+#             "finding": "Results show Creatinine (0.49 mg/dL), eGFR (estimated glomerular filtration rate) >59 mL/min/1.73m2 (G1 category), Urea (24.20 mg/dL), Urea Nitrogen (11.30 mg/dL), BUN/Creatinine Ratio (23), and Uric Acid (5.97 mg/dL). AST (SGOT) level is 25.0."
+#             }
+#         ],
+#         "previous_medications": [
+#             "Asthma medication"
+#         ],
+#         "current_health_status": "Patient reports home asthma problems.  Blood test reveals slightly elevated Urea, Urea Nitrogen, and Uric Acid levels. Creatinine and eGFR are within the normal range. AST is slightly elevated.  Further investigation may be needed to determine the significance of these findings.",
+#         "allergies": [],
+#         "family_history": "All Good (reported)",
+#         "test_results": {
+#             "blood_test": {
+#             "Creatinine": "0.49 mg/dL (0.51 - 0.95 mg/dL)",
+#             "eGFR": ">59 mL/min/1.73m2 (G1 category)",
+#             "Urea": "24.20 mg/dL (17.00 - 43.00 mg/dL)",
+#             "Urea Nitrogen": "11.30 mg/dL (6.00 - 20.00 mg/dL)",
+#             "BUN/Creatinine Ratio": "23",
+#             "Uric Acid": "5.97 mg/dL (2.60 - 6.00 mg/dL)",
+#             "AST (SGOT)": "25.0"
+#             },
+#             "culture_test": [],
+#             "imaging": []
+#         },
+#         "recommendations": [
+#             "Review patient's asthma management plan.",
+#             "Assess the significance of slightly elevated Urea, Urea Nitrogen, and Uric Acid levels. Consider further investigation to rule out underlying causes such as dehydration, diet, or kidney function issues.  A repeat blood test might be beneficial.",
+#             "Evaluate the slightly elevated AST level.  Consider liver function tests to assess liver health.",
+#             "Discuss lifestyle modifications, including diet and hydration, to manage elevated uric acid and potentially improve other blood markers.",
+#             "Patient should be advised to follow up with her physician for further evaluation and management."
+#         ]
+#     }
+#     output_path = agent3_(json_data)
+#     print(f"PDF generated at: {output_path}")
