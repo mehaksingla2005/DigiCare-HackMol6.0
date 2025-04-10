@@ -19,6 +19,7 @@ import PatientRegistration from "./components/PatientRegistration.jsx";
 import DoctorRegistration from "./components/DoctorRegistration.jsx";
 // import ProfilePage from './components/ProfilePage';
 // import UserAvatar from "./components/UserAvatar.jsx";
+import AddPatient from "./components/AddPatient.jsx"
 import Register from "./components/Register.jsx";
 import Login from "./components/Login.jsx";
 import UserProfile from "./components/UserProfile";
@@ -71,6 +72,7 @@ const handleLogout = () => {
         <Route path="/patient-dashboard" element={<UserProfile isLoggedIn={isLoggedIn} user={userData} onLogout={handleLogout} />} />
         <Route path="/patient-registration" element={<PatientRegistration />} />
         <Route path="/doctor-registration" element={<DoctorRegistration />} />
+        <Route path="/add-patient" element={<AddPatient/>}/>
         {/* <Route path="/profile" element={<ProfilePage />} />
         <Route path="/UserAvatar" element={<UserAvatar />} /> */}
         <Route
