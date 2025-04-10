@@ -6,6 +6,8 @@ from reportlab.lib.colors import HexColor
 import os
 from datetime import datetime
 from io import BytesIO
+from fastapi import FastAPI, HTTPException
+from fastapi.responses import StreamingResponse
 
 def format_key_as_title(key):
     """Convert snake_case to Title Case with proper spacing."""

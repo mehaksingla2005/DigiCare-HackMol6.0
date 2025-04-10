@@ -1,6 +1,6 @@
-from fastapi import FastAPI, HTTPException, Response
-from fastapi.responses import FileResponse
-from fastapi.staticfiles import StaticFiles
+from fastapi import FastAPI, HTTPException
+from fastapi.responses import StreamingResponse
+
 from pydantic import BaseModel, HttpUrl
 from typing import List
 import requests
@@ -8,22 +8,11 @@ import asyncio
 import os
 from datetime import date
 
-from datetime import date
 from agent1_ import agent1_
 from agent2_ import agent2_
 from agent3_ import agent3_
 
 app = FastAPI()
-
-
-async def async_agent1_(data):
-    return agent1_(data)
-
-async def async_agent2_(data):
-    return agent2_(data)
-
-async def async_agent3_(data):
-    return agent3_(data)
 
 # Request schema
 class ScanRequest(BaseModel):
@@ -38,23 +27,23 @@ class ScanRequest(BaseModel):
     documents: List[HttpUrl]
     summary: List[str]
 
+# Async wrappers
+async def async_agent1_(data): return agent1_(data)
+async def async_agent2_(data): return agent2_(data)
+async def async_agent3_(data): return agent3_(data)  # returns StreamingResponse
 
-# Async smart scan pipeline
+# Pipeline
 async def smart_scan_pipeline(json_data: dict):
     output1 = await async_agent1_(json_data)
-    # print(f"Output from agent1: {output1}")
     output2 = await async_agent2_(output1)
-    print(f"Output from agent2: {output2}")
-    output_path = await async_agent3_(output2)
-    return os.path.abspath(output_path)
+    response = await async_agent3_(output2)
+    return response
 
-# Smart Scan Endpoint
-@app.post("/smartscan")
+# Endpoint
+@app.post("/smartscan", response_class=StreamingResponse)
 async def smart_scan(request: ScanRequest):
     try:
-        # Pass directly to the pipeline
-        result_path = await smart_scan_pipeline(request.dict())
-        return {"status": "success", "output_path": result_path}
+        return await smart_scan_pipeline(request.dict())
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Scan failed: {str(e)}")
 
