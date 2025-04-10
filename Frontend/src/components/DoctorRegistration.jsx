@@ -90,9 +90,10 @@ const DoctorRegistrationForm = () => {
         console.log(pair[0] + ':', pair[1]);
       }
 
-      const response = await fetch('http://localhost:5000/api/doctors/register', {
+      const response = await fetch(`${import.meta.env.VITE_API_URL}/api/doctors/register`, {
         method: 'POST',
-        body: formDataToSend
+        body: formDataToSend,
+        credentials: 'include',
       });
 
       console.log('Response status:', response.status);

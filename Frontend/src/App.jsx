@@ -24,29 +24,19 @@ import UserProfile from "./components/UserProfile";
 
 function App() {
 
-  // const [isLoggedIn, setIsLoggedIn] = useState(false);
-  // const [userEmail, setUserEmail] = useState('');
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
+  const [userEmail, setUserEmail] = useState('');
 
-  // useEffect(() => {
-  //   if (isAuthenticated && user) {
-  //     setIsLoggedIn(true);
-  //     setUserEmail(user.email);
-  //   } else {
-  //     setIsLoggedIn(false);
-  //     setUserEmail('');
-  //   }
-  // }, [isAuthenticated, user]);
+  const handleLogin = (loggedIn, email) => {
+    setIsLoggedIn(loggedIn);
+    setUserEmail(email);
+  };
 
-  // const handleLogin = (loggedIn, email) => {
-  //   setIsLoggedIn(loggedIn);
-  //   setUserEmail(email);
-  // };
-
-  // const handleLogout = () => {
-  //   logout({ returnTo: window.location.origin });
-  //   setIsLoggedIn(false);
-  //   setUserEmail('');
-  // };
+  const handleLogout = () => {
+    logout({ returnTo: window.location.origin });
+    setIsLoggedIn(false);
+    setUserEmail('');
+  };
 
   return (
     <BrowserRouter>
@@ -56,7 +46,7 @@ function App() {
       <Routes>
         <Route path="/" element={<HomePage />} />
         {/* //<Route path="/login" element={<Login onLogin={handleLogin} />} /> */}
-        <Route path="/login" element={<Login />} />
+        <Route path="/login" element={<Login onLogin={handleLogin} />} />
         <Route path="/register" element={<Register />} />
         <Route path="/explore" element={<Explore />} />
         <Route path="/about" element={<AboutUsSection />} />
