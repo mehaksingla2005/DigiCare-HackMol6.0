@@ -31,4 +31,5 @@ app.use('/users', userRoutes);
 app.use('/auth',authRoutes)
 app.use('/api/doctors',doctorRoutes);
 app.use('/api/patients',patientRoutes);
+app.use('/api/doctor-patient', require('./routes/doctorPatient'));
 app.listen(PORT, () => console.log(`Server running on http://localhost:${PORT}`));
