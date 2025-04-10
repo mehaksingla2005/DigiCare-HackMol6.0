@@ -65,13 +65,17 @@ const handleLogout = () => {
         <Route path="/history" element={<AIAssistant />} />
         
         <Route path="/dashboard" element={<Dashboard />} />
-        {/* <Route path="/doctor-dashboard" element={<DoctorDashboard />} />
-        <Route path="/patient-dashboard" element={<PatientDashboard />} /> */}
+        <Route path="/doctor-dashboard" element={<UserProfile isLoggedIn={isLoggedIn} user={userData} onLogout={handleLogout} />} />
+        <Route path="/patient-dashboard" element={<UserProfile isLoggedIn={isLoggedIn} user={userData} onLogout={handleLogout} />} />
         <Route path="/patient-registration" element={<PatientRegistration />} />
         <Route path="/doctor-registration" element={<DoctorRegistration />} />
         {/* <Route path="/profile" element={<ProfilePage />} />
         <Route path="/UserAvatar" element={<UserAvatar />} /> */}
-        <Route path="/profile" element={<UserProfile />} />
+        <Route
+          path="/profile"
+          element={<UserProfile isLoggedIn={isLoggedIn} user={userData} onLogout={handleLogout} />}
+        />
+
       </Routes>
       
     </BrowserRouter>

@@ -36,6 +36,8 @@ exports.getUser = async (req, res) => {
     }
 };
 
+// Fixed getUserProfile controller to avoid MissingSchemaError
+
 exports.getUserProfile = async (req, res) => {
     try {
       const { email } = req.body;
@@ -65,9 +67,11 @@ exports.getUserProfile = async (req, res) => {
         profileCompleted: user.profileCompleted
       };
   
-      // If user has a type (doctor or patient), fetch the corresponding profile data
+      // If user has a type (doctor or patient), fetch the corresponding profile data without populate
       if (user.userType === 'doctor' && user.typeId) {
+        // For doctor: don't populate to avoid schema errors
         const doctorProfile = await Doctor.findById(user.typeId);
+        
         if (doctorProfile) {
           userData.typeId = {
             id: doctorProfile._id,
@@ -78,11 +82,24 @@ exports.getUserProfile = async (req, res) => {
             profilePhoto: doctorProfile.profilePhoto,
             city: doctorProfile.city,
             state: doctorProfile.state,
-            yearsOfExperience: doctorProfile.yearsOfExperience
+            country: doctorProfile.country,
+            yearsOfExperience: doctorProfile.yearsOfExperience,
+            gender: doctorProfile.gender,
+            dateOfBirth: doctorProfile.dateOfBirth,
+            clinicAddress: doctorProfile.clinicAddress,
+            availableHours: doctorProfile.availableHours,
+            timezone: doctorProfile.timezone,
+            registrationNumber: doctorProfile.registrationNumber,
+            degrees: doctorProfile.degrees,
+            // Instead of populated data, just include the IDs
+            patients: doctorProfile.patients,
+            summary: doctorProfile.summary
           };
         }
       } else if (user.userType === 'patient' && user.typeId) {
+        // For patient: don't populate to avoid schema errors
         const patientProfile = await Patient.findById(user.typeId);
+        
         if (patientProfile) {
           userData.typeId = {
             id: patientProfile._id,
@@ -92,7 +109,18 @@ exports.getUserProfile = async (req, res) => {
             profilePhoto: patientProfile.profilePhoto,
             age: patientProfile.age,
             gender: patientProfile.gender,
-            bloodGroup: patientProfile.bloodGroup
+            bloodGroup: patientProfile.bloodGroup,
+            dateOfBirth: patientProfile.dateOfBirth,
+            maritalStatus: patientProfile.maritalStatus,
+            address: patientProfile.address,
+            medicalHistory: patientProfile.medicalHistory,
+            currentMedications: patientProfile.currentMedications,
+            familyMedicalHistory: patientProfile.familyMedicalHistory,
+            documents: patientProfile.documents,
+            // Instead of populated data, just include the IDs
+            doctors: patientProfile.doctors,
+            reports: patientProfile.reports,
+            summary: patientProfile.summary
           };
         }
       }
