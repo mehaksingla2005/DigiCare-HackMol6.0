@@ -208,64 +208,61 @@ exports.searchDoctors = async (req, res) => {
   }
 };
 
-// Update - Update doctor profile
 exports.updateDoctor = async (req, res) => {
   try {
     const { id } = req.params;
-    const updateData = req.body;
-    
-    // If file was uploaded, add profile photo path to update data
+    const updateData = { ...req.body };
+
+    // Handle new profile photo upload
     if (req.file) {
       updateData.profilePhoto = req.file.path;
     }
-    
-    // Handle special fields
+
+    // Transform date of birth
     if (updateData.dob) {
       updateData.dateOfBirth = new Date(updateData.dob);
       delete updateData.dob;
     }
-    
+
+    // Transform phone
     if (updateData.phone) {
       updateData.phoneNumber = updateData.phone;
       delete updateData.phone;
     }
-    
+
+    // Transform specialization(s)
     if (updateData.specialization) {
-      updateData.specializations = [updateData.specialization];
+      updateData.specializations = Array.isArray(updateData.specialization)
+        ? updateData.specialization
+        : [updateData.specialization];
       delete updateData.specialization;
     }
-    
+
+    // Transform experience
     if (updateData.experience) {
       updateData.yearsOfExperience = parseInt(updateData.experience, 10);
       delete updateData.experience;
     }
-    
+
+    // Transform degrees
     if (updateData.degrees) {
-      updateData.degrees = [updateData.degrees];
+      updateData.degrees = Array.isArray(updateData.degrees)
+        ? updateData.degrees
+        : [updateData.degrees];
     }
-    
-    const doctor = await Doctor.findByIdAndUpdate(
-      id, 
-      updateData,
-      { new: true, runValidators: true }
-    );
-    
+
+    const doctor = await Doctor.findByIdAndUpdate(id, updateData, {
+      new: true,
+      runValidators: true
+    });
+
     if (!doctor) {
-      return res.status(404).json({
-        error: 'Doctor not found'
-      });
+      return res.status(404).json({ error: 'Doctor not found' });
     }
-    
+
     res.status(200).json({
       message: 'Doctor profile updated successfully',
-      doctor: {
-        id: doctor._id,
-        fullName: doctor.fullName,
-        email: doctor.email,
-        specializations: doctor.specializations,
-        city: doctor.city,
-        state: doctor.state
-      }
+      doctor
     });
   } catch (error) {
     console.error('Error updating doctor:', error);
@@ -275,6 +272,7 @@ exports.updateDoctor = async (req, res) => {
     });
   }
 };
+
 
 // Delete - Delete doctor profile
 exports.deleteDoctor = async (req, res) => {
