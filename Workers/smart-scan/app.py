@@ -1,6 +1,6 @@
 from fastapi import FastAPI, HTTPException
 from fastapi.responses import StreamingResponse
-
+from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel, HttpUrl
 from typing import List
 import requests
@@ -13,6 +13,18 @@ from agent2_ import agent2_
 from agent3_ import agent3_
 
 app = FastAPI()
+
+
+# Add CORS middleware
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],  # In production, specify your frontend domain
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+
+
 
 # Request schema
 class ScanRequest(BaseModel):
