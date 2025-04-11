@@ -53,7 +53,8 @@ export default defineConfig(({ mode }) => {
       port: parseInt(process.env.PORT) || 5173,
       proxy: {
         '/api': {
-          target: env.VITE_API_URL,
+          //target: env.VITE_API_URL,
+          target:"https://digicare-backend.onrender.com",
           changeOrigin: true,
           secure: false,
           rewrite: (path) => path.replace(/^\/api/, ''),
