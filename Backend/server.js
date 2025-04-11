@@ -29,7 +29,7 @@ app.use(
     origin: [
       "http://localhost:5173",  "http://localhost:5174",
      "https://digi-care-hack-mol6-0.vercel.app",
-     "digicare-hackmol6-0-1.onrender.com"
+     "https://digicare-hackmol6-0-1.onrender.com"
     ],
     methods: "GET,HEAD,PUT,PATCH,POST,DELETE",
     optionsSuccessStatus: 204,
