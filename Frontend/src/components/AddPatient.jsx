@@ -29,60 +29,71 @@ const PatientSearchBox = ({ searchQuery, setSearchQuery, isSearching }) => {
 };
 
 // PatientCard Component
+// PatientCard Component - Updated to display profile photo
 const PatientCard = ({ patient, isLinked, onAddPatient }) => {
-  const avatarLetter = patient.name.charAt(0).toUpperCase();
-  const genderColors = {
-    Male: "bg-blue-100 text-blue-800",
-    Female: "bg-pink-100 text-pink-800",
-    Other: "bg-purple-100 text-purple-800"
-  };
-  
-  return (
-    <div className="flex justify-between items-center border border-gray-200 rounded-lg p-4 hover:bg-blue-50 transition-colors shadow-sm">
-      <div className="flex items-center gap-4">
-        <div className="flex-shrink-0 w-12 h-12 bg-blue-100 rounded-full flex items-center justify-center text-blue-700 font-semibold text-xl">
-          {avatarLetter}
-        </div>
-        <div>
-          <h3 className="font-medium text-gray-800">{patient.name}</h3>
-          <div className="flex items-center gap-2 mt-1">
-            <span className="text-sm text-gray-600">{patient.age} yrs</span>
-            <span className="w-1.5 h-1.5 bg-gray-300 rounded-full"></span>
-            <span className={`px-2 py-0.5 rounded-full text-xs ${genderColors[patient.gender] || "bg-gray-100 text-gray-800"}`}>
-              {patient.gender}
-            </span>
-            <span className="w-1.5 h-1.5 bg-gray-300 rounded-full"></span>
-            <span className="text-sm font-medium text-gray-700">{patient.condition}</span>
+    const avatarLetter = patient.name.charAt(0).toUpperCase();
+    const genderColors = {
+      Male: "bg-blue-100 text-blue-800",
+      Female: "bg-pink-100 text-pink-800",
+      Other: "bg-purple-100 text-purple-800"
+    };
+    
+    return (
+      <div className="flex justify-between items-center border border-gray-200 rounded-lg p-4 hover:bg-blue-50 transition-colors shadow-sm">
+        <div className="flex items-center gap-4">
+          {patient.profilePhoto ? (
+            <div className="flex-shrink-0 w-12 h-12 rounded-full overflow-hidden">
+              <img 
+                src={patient.profilePhoto} 
+                alt={patient.name} 
+                className="w-full h-full object-cover"
+              />
+            </div>
+          ) : (
+            <div className="flex-shrink-0 w-12 h-12 bg-blue-100 rounded-full flex items-center justify-center text-blue-700 font-semibold text-xl">
+              {avatarLetter}
+            </div>
+          )}
+          <div>
+            <h3 className="font-medium text-gray-800">{patient.name}</h3>
+            <div className="flex items-center gap-2 mt-1">
+              <span className="text-sm text-gray-600">{patient.age} yrs</span>
+              <span className="w-1.5 h-1.5 bg-gray-300 rounded-full"></span>
+              <span className={`px-2 py-0.5 rounded-full text-xs ${genderColors[patient.gender] || "bg-gray-100 text-gray-800"}`}>
+                {patient.gender}
+              </span>
+              <span className="w-1.5 h-1.5 bg-gray-300 rounded-full"></span>
+              <span className="text-sm font-medium text-gray-700">{patient.condition}</span>
+            </div>
           </div>
         </div>
+        <button 
+          onClick={() => onAddPatient(patient)}
+          className={`px-4 py-2 rounded-lg text-white font-medium transition-all transform hover:scale-105 ${
+            isLinked 
+              ? "bg-green-500 hover:bg-green-600" 
+              : "bg-blue-500 hover:bg-blue-600"
+          }`}
+        >
+          {isLinked ? (
+            <div className="flex items-center gap-1">
+              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7"></path>
+              </svg>
+              <span>Added</span>
+            </div>
+          ) : (
+            <div className="flex items-center gap-1">
+              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path>
+              </svg>
+              <span>Add Patient</span>
+            </div>
+          )}
+        </button>
       </div>
-      <button 
-        onClick={() => onAddPatient(patient)}
-        className={`px-4 py-2 rounded-lg text-white font-medium transition-all transform hover:scale-105 ${
-          isLinked 
-            ? "bg-green-500 hover:bg-green-600" 
-            : "bg-blue-500 hover:bg-blue-600"
-        }`}
-      >
-        {isLinked ? (
-          <div className="flex items-center gap-1">
-            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7"></path>
-            </svg>
-            <span>Added</span>
-          </div>
-        ) : (
-          <div className="flex items-center gap-1">
-            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path>
-            </svg>
-            <span>Add Patient</span>
-          </div>
-        )}
-      </button>
-    </div>
-  );
-};
+    );
+  };
 
 // SearchResults Component
 const SearchResults = ({ searchResults, searchQuery, isSearching, linkedPatients, onAddPatient, error }) => {
@@ -142,62 +153,73 @@ const toast = (message, type = "success") => {
 };
 
 // LinkedPatients Component
+// LinkedPatients Component - Updated to display profile photos
 const LinkedPatients = ({ linkedPatients, onRemovePatient }) => {
-  return (
-    <div className="bg-white rounded-lg shadow-md p-6 sticky top-4">
-      <h2 className="text-xl font-semibold mb-6 text-gray-800 flex items-center gap-2">
-        <svg className="w-5 h-5 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"></path>
-        </svg>
-        Your Patients
-      </h2>
-      
-      {linkedPatients.length === 0 ? (
-        <div className="text-center py-10 bg-gray-50 rounded-lg border border-gray-200 border-dashed">
-          <svg className="w-14 h-14 mx-auto text-gray-300 mb-3" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"></path>
+    return (
+      <div className="bg-white rounded-lg shadow-md p-6 sticky top-4">
+        <h2 className="text-xl font-semibold mb-6 text-gray-800 flex items-center gap-2">
+          <svg className="w-5 h-5 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"></path>
           </svg>
-          <p className="text-gray-500 font-medium">No patients added yet</p>
-          <p className="text-sm mt-2 text-gray-400">Search and add patients to your list</p>
-        </div>
-      ) : (
-        <div className="space-y-3">
-          {linkedPatients.map(patient => (
-            <div key={patient.id} className="flex justify-between items-center p-3 border border-gray-200 rounded-lg bg-blue-50 hover:bg-blue-100 transition-colors">
-              <div className="flex items-center gap-3">
-                <div className="w-8 h-8 bg-blue-500 rounded-full flex items-center justify-center text-white font-medium">
-                  {patient.name.charAt(0).toUpperCase()}
+          Your Patients
+        </h2>
+        
+        {linkedPatients.length === 0 ? (
+          <div className="text-center py-10 bg-gray-50 rounded-lg border border-gray-200 border-dashed">
+            <svg className="w-14 h-14 mx-auto text-gray-300 mb-3" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"></path>
+            </svg>
+            <p className="text-gray-500 font-medium">No patients added yet</p>
+            <p className="text-sm mt-2 text-gray-400">Search and add patients to your list</p>
+          </div>
+        ) : (
+          <div className="space-y-3">
+            {linkedPatients.map(patient => (
+              <div key={patient.id} className="flex justify-between items-center p-3 border border-gray-200 rounded-lg bg-blue-50 hover:bg-blue-100 transition-colors">
+                <div className="flex items-center gap-3">
+                  {patient.profilePhoto ? (
+                    <div className="w-8 h-8 rounded-full overflow-hidden">
+                      <img 
+                        src={patient.profilePhoto} 
+                        alt={patient.name} 
+                        className="w-full h-full object-cover"
+                      />
+                    </div>
+                  ) : (
+                    <div className="w-8 h-8 bg-blue-500 rounded-full flex items-center justify-center text-white font-medium">
+                      {patient.name.charAt(0).toUpperCase()}
+                    </div>
+                  )}
+                  <div>
+                    <h3 className="font-medium text-gray-800">{patient.name}</h3>
+                    <p className="text-xs text-gray-600">{patient.condition}</p>
+                  </div>
                 </div>
-                <div>
-                  <h3 className="font-medium text-gray-800">{patient.name}</h3>
-                  <p className="text-xs text-gray-600">{patient.condition}</p>
-                </div>
+                <button 
+                  onClick={() => onRemovePatient(patient.id)}
+                  className="text-red-500 hover:text-red-700 p-1 rounded-full hover:bg-red-100 transition-colors"
+                  title="Remove patient"
+                >
+                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
+                  </svg>
+                </button>
               </div>
-              <button 
-                onClick={() => onRemovePatient(patient.id)}
-                className="text-red-500 hover:text-red-700 p-1 rounded-full hover:bg-red-100 transition-colors"
-                title="Remove patient"
-              >
-                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
-                </svg>
-              </button>
-            </div>
-          ))}
-
-          <div className="mt-6 pt-4 border-t border-gray-200">
-            <div className="bg-blue-100 rounded-lg p-3 flex items-center justify-between">
-              <div className="text-sm font-medium text-blue-800">Total patients</div>
-              <div className="bg-blue-500 text-white w-8 h-8 rounded-full flex items-center justify-center font-bold">
-                {linkedPatients.length}
+            ))}
+  
+            <div className="mt-6 pt-4 border-t border-gray-200">
+              <div className="bg-blue-100 rounded-lg p-3 flex items-center justify-between">
+                <div className="text-sm font-medium text-blue-800">Total patients</div>
+                <div className="bg-blue-500 text-white w-8 h-8 rounded-full flex items-center justify-center font-bold">
+                  {linkedPatients.length}
+                </div>
               </div>
             </div>
           </div>
-        </div>
-      )}
-    </div>
-  );
-};
+        )}
+      </div>
+    );
+  };
 
 // SearchSection Component
 const SearchSection = ({ 
@@ -237,99 +259,105 @@ const SearchSection = ({
 };
 
 // API Service for Patient data
+// API Service for Patient data
 const PatientService = {
-  // Base API URL - replace with your actual API endpoint
-  baseUrl: process.env.REACT_APP_API_URL || 'https://api.example.com',
-  
-  // Get headers for API requests
-  getHeaders() {
-    // You can add authorization headers here if needed
-    return {
-      'Content-Type': 'application/json',
-      'Authorization': `Bearer ${localStorage.getItem('token')}` // If using token-based auth
-    };
-  },
-  
-  // Search patients by name
-  async searchPatients(query) {
-    try {
-      const response = await fetch(`${this.baseUrl}/api/patients/search?query=${encodeURIComponent(query)}`, {
-        method: 'GET',
-        headers: this.getHeaders()
-      });
-      
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.message || 'Failed to fetch patients');
+    // Base API URL - replace with your actual API endpoint
+    baseUrl: import.meta.env.VITE_API_URL || 'http://localhost5000',
+    
+    // Get headers for API requests
+    getHeaders() {
+      // You can add authorization headers here if needed
+      return {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${localStorage.getItem('token')}` // If using token-based auth
+      };
+    },
+    
+    // Search patients by name
+    async searchPatients(query) {
+      try {
+        const response = await fetch(`${this.baseUrl}/api/doctor-patient/patients/search?query=${encodeURIComponent(query)}`, {
+          method: 'GET',
+          headers: this.getHeaders(),
+          credentials: 'include' // For cookies if using cookie-based auth
+        });
+        
+        if (!response.ok) {
+          const errorData = await response.json();
+          throw new Error(errorData.message || 'Failed to fetch patients');
+        }
+        
+        return await response.json();
+      } catch (error) {
+        console.error('Error searching patients:', error);
+        throw error;
       }
-      
-      return await response.json();
-    } catch (error) {
-      console.error('Error searching patients:', error);
-      throw error;
-    }
-  },
-  
-  // Add a patient to doctor's linked patients
-  async addPatientToDoctor(patientId) {
-    try {
-      const response = await fetch(`${this.baseUrl}/api/doctors/patients`, {
-        method: 'POST',
-        headers: this.getHeaders(),
-        body: JSON.stringify({ patientId })
-      });
-      
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.message || 'Failed to add patient');
+    },
+    
+    // Add a patient to doctor's linked patients
+    async addPatientToDoctor(patientId) {
+      try {
+        const response = await fetch(`${this.baseUrl}/api/doctor-patient/doctor/patients`, {
+          method: 'POST',
+          headers: this.getHeaders(),
+          credentials: 'include',
+          body: JSON.stringify({ patientId })
+        });
+        
+        if (!response.ok) {
+          const errorData = await response.json();
+          throw new Error(errorData.message || 'Failed to add patient');
+        }
+        
+        return await response.json();
+      } catch (error) {
+        console.error('Error adding patient:', error);
+        throw error;
       }
-      
-      return await response.json();
-    } catch (error) {
-      console.error('Error adding patient:', error);
-      throw error;
-    }
-  },
-  
-  // Remove a patient from doctor's linked patients
-  async removePatientFromDoctor(patientId) {
-    try {
-      const response = await fetch(`${this.baseUrl}/api/doctors/patients/${patientId}`, {
-        method: 'DELETE',
-        headers: this.getHeaders()
-      });
-      
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.message || 'Failed to remove patient');
+    },
+    
+    // Remove a patient from doctor's linked patients
+    async removePatientFromDoctor(patientId) {
+      try {
+        const response = await fetch(`${this.baseUrl}/api/doctor-patient/doctor/patients/${patientId}`, {
+          method: 'DELETE',
+          headers: this.getHeaders(),
+          credentials: 'include'
+        });
+        
+        if (!response.ok) {
+          const errorData = await response.json();
+          throw new Error(errorData.message || 'Failed to remove patient');
+        }
+        
+        return await response.json();
+      } catch (error) {
+        console.error('Error removing patient:', error);
+        throw error;
       }
-      
-      return await response.json();
-    } catch (error) {
-      console.error('Error removing patient:', error);
-      throw error;
-    }
-  },
-  
-  // Get all linked patients for the current doctor
-  async getDoctorPatients() {
-    try {
-      const response = await fetch(`${import.meta.env.API_URL}/users/`, {
-        method: 'GET',
-      });
-      
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.message || 'Failed to fetch doctor patients');
+    },
+    
+    // Get all linked patients for the current doctor
+    async getDoctorPatients() {
+      try {
+        const response = await fetch(`${this.baseUrl}/api/doctor-patient/doctor/patients`, {
+          method: 'GET',
+          headers: this.getHeaders(),
+          credentials: 'include'
+        });
+        
+        if (!response.ok) {
+          const errorData = await response.json();
+          throw new Error(errorData.message || 'Failed to fetch doctor patients');
+        }
+        
+        return await response.json();
+      } catch (error) {
+        console.error('Error fetching doctor patients:', error);
+        throw error;
       }
-      
-      return await response.json();
-    } catch (error) {
-      console.error('Error fetching doctor patients:', error);
-      throw error;
     }
-  }
-};
+  };
 
 // Main PatientSearch Component
 const PatientSearch = () => {
