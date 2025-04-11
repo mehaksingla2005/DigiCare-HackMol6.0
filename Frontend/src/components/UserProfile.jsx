@@ -8,6 +8,14 @@ const UserProfile = ({ isLoggedIn, user, onLogout }) => {
   const [patients, setPatients] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [analyzedReports, setAnalyzedReports] = useState({});
+  const [analyzingIndex, setAnalyzingIndex] = useState(null);
+
+  // Add missing function to format response text
+  const formatResponseText = (text) => {
+    if (!text) return [];
+    return text.split('\n').filter(paragraph => paragraph.trim() !== '');
+  };
 
   const handleSmartScan = async () => {
     try {
@@ -59,6 +67,32 @@ const UserProfile = ({ isLoggedIn, user, onLogout }) => {
       console.error("Error during Smart Scan:", error);
       // Display error to user
       alert("Failed to generate the report. Please try again.");
+    }
+  };
+
+  const handleAnalyzeReport = async (index, docUrl) => {
+    setAnalyzingIndex(index);
+    try {
+      const res = await fetch('https://digicare-analyze.onrender.com/analyze-pdf', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ pdf_url: docUrl }),
+      });
+      
+      if (!res.ok) {
+        throw new Error('Analysis service responded with an error');
+      }
+      
+      const data = await res.json();
+      setAnalyzedReports((prev) => ({ ...prev, [index]: data }));
+    } catch (err) {
+      console.error('Report analysis error:', err);
+      setAnalyzedReports((prev) => ({ 
+        ...prev, 
+        [index]: { error: 'Analysis failed. Please try again later.' } 
+      }));
+    } finally {
+      setAnalyzingIndex(null);
     }
   };
 
@@ -149,7 +183,6 @@ const UserProfile = ({ isLoggedIn, user, onLogout }) => {
                 User Type: {profileData.userType}
               </p>
               <div className="mt-4 flex gap-3 flex-wrap">
-                {/* <Link to="/edit-profile" className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-full shadow">Edit Profile</Link> */}
                 {isPatient && (
                   <Link
                     to={`/patient/profile/${details.id}`}
@@ -229,25 +262,58 @@ const UserProfile = ({ isLoggedIn, user, onLogout }) => {
                   {details.documents.map((doc, idx) => (
                     <div
                       key={idx}
-                      className="flex items-center justify-between p-4 border rounded-md shadow-sm hover:shadow-md transition"
+                      className="flex flex-col gap-2 p-4 border rounded-md shadow-sm hover:shadow-md transition"
                     >
-                      <div className="flex items-center gap-3">
-                        <FaFilePdf className="text-red-500 w-6 h-6" />
-                        <a
-                          href={doc}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="text-lg text-blue-700 hover:underline"
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-3">
+                          <FaFilePdf className="text-red-500 w-6 h-6" />
+                          <a
+                            href={doc}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="text-lg text-blue-700 hover:underline"
+                          >
+                            Report {idx + 1}
+                          </a>
+                        </div>
+                        <button
+                          onClick={() => handleAnalyzeReport(idx, doc)}
+                          disabled={analyzingIndex === idx}
+                          className={`${
+                            analyzingIndex === idx ? 'bg-gray-400' : 'bg-green-600 hover:bg-green-700'
+                          } text-white px-4 py-1.5 rounded-md shadow`}
                         >
-                          Report {idx + 1}
-                        </a>
+                          {analyzingIndex === idx ? 'Analyzing...' : 'Analyze Report'}
+                        </button>
                       </div>
-                      <Link
-                        to={`/analyze-report/${idx}`}
-                        className="bg-green-600 hover:bg-green-700 text-white px-4 py-1.5 rounded-md shadow"
-                      >
-                        Analyze Report
-                      </Link>
+                      {analyzedReports[idx] && (
+                        <div className="mt-4 border rounded-lg overflow-hidden shadow-sm">
+                          <div className="bg-blue-50 border-b px-4 py-2 flex justify-between items-center">
+                            <h3 className="text-blue-800 font-medium">Report Analysis</h3>
+                            <button 
+                              onClick={() => setAnalyzedReports(prev => {
+                                const newState = {...prev};
+                                delete newState[idx];
+                                return newState;
+                              })}
+                              className="text-gray-500 hover:text-red-500"
+                            >
+                              ×
+                            </button>
+                          </div>
+                          <div className="p-4 bg-white">
+                            {analyzedReports[idx].error ? (
+                              <p className="text-red-500">{analyzedReports[idx].error}</p>
+                            ) : (
+                              <div className="text-gray-700">
+                                {formatResponseText(analyzedReports[idx]?.analysis?.split('**Response:**')[1]?.split('**Reasoning:**')[0]?.trim()).map((paragraph, i) => (
+                                  <p key={i} className="mb-3">{paragraph}</p>
+                                ))}
+                              </div>
+                            )}
+                          </div>
+                        </div>
+                      )}
                     </div>
                   ))}
                 </div>
