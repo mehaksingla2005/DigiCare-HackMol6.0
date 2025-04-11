@@ -97,11 +97,6 @@ def main():
     if 'pdf_link' in query_params:
         pdf_url = unquote(query_params['pdf_link'])
         print(f"PDF URL: {pdf_url}")  # Debugging line
-    else:
-        st.error("No PDF link found in the query parameters.")
-
-    if pdf_url:
-        # Display the PDF link as a preview (optional)
         if st.button("🔍 Analyze PDF Report"):
             with st.spinner("Analyzing the medical report..."):
                 # Extract text from the PDF at the given URL
@@ -114,6 +109,12 @@ def main():
                     st.write(analysis)
                 else:
                     st.error("Failed to extract text from the PDF.")
-    
+    else:
+        st.info("Please provide a PDF link in the URL parameters to analyze a medical report.")
+        st.markdown("""
+        ### How to use this tool:
+        1. Add a PDF link to the URL as a query parameter: `?pdf_link=YOUR_PDF_URL`
+        2. The AI will automatically analyze the medical report and provide insights
+        """)    
 if __name__ == "__main__":
     main()
