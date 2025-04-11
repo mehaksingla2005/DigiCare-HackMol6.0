@@ -117,15 +117,15 @@ import React, { useState, useEffect } from "react";
  };
  
  const mockPatients = [
-   { id: 1, name: "John Doe", age: 45, gender: "Male", condition: "Hypertension" },
-   { id: 2, name: "Jane Smith", age: 32, gender: "Female", condition: "Diabetes" },
-   { id: 3, name: "Robert Johnson", age: 56, gender: "Male", condition: "Arthritis" },
-   { id: 4, name: "Lisa Brown", age: 28, gender: "Female", condition: "Asthma" },
-   { id: 5, name: "Michael Williams", age: 67, gender: "Male", condition: "Heart Disease" },
-   { id: 6, name: "Sarah Miller", age: 41, gender: "Female", condition: "Migraine" },
-   { id: 7, name: "James Wilson", age: 39, gender: "Male", condition: "Anxiety" },
-   { id: 8, name: "Emily Davis", age: 52, gender: "Female", condition: "Osteoporosis" },
- ];
+  { id: 1, name: "Rajesh Kumar", age: 45, gender: "Male", condition: "Hypertension" },
+  { id: 2, name: "Priya Sharma", age: 32, gender: "Female", condition: "Diabetes" },
+  { id: 3, name: "Amit Patel", age: 56, gender: "Male", condition: "Arthritis" },
+  { id: 4, name: "Meera Singh", age: 28, gender: "Female", condition: "Asthma" },
+  { id: 5, name: "Vikram Malhotra", age: 67, gender: "Male", condition: "Heart Disease" },
+  { id: 6, name: "Neha Agarwal", age: 41, gender: "Female", condition: "Migraine" },
+  { id: 7, name: "Suresh Gupta", age: 39, gender: "Male", condition: "Anxiety" },
+  { id: 8, name: "Ananya Reddy", age: 52, gender: "Female", condition: "Osteoporosis" },
+];
  
  // Toast notification function
  const toast = (message) => {
