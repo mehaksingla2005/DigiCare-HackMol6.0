@@ -1,9 +1,45 @@
+// import { Link } from 'react-router-dom';
+// import { useState, useEffect } from 'react';
+// import { FiMenu, FiX } from 'react-icons/fi';
+// import PropTypes from 'prop-types';
+// import ProfileDropdown from "./ProfileDropDown";
+// import axios from 'axios';
+
+// const Navbar = ({ isLoggedIn, user, onLogout }) => {
+//   const [menuOpen, setMenuOpen] = useState(false);
+//   const [showDropdown, setShowDropdown] = useState(false);
+//   const [userData, setUserData] = useState(null);
+//   const [loading, setLoading] = useState(false);
+
+//   useEffect(() => {
+//     const fetchUserData = async () => {
+//       if (isLoggedIn && user && user.email) {
+//         setLoading(true);
+//         try {
+//           const response = await axios.post(
+//             `${import.meta.env.VITE_API_URL}/users/getProfile`, 
+//             { email: user.email }
+//           );
+          
+//           setUserData(response.data);
+//         } catch (error) {
+//           console.error('Error fetching user profile:', error);
+//         } finally {
+//           setLoading(false);
+//         }
+//       }
+//     };
+
+//     fetchUserData();
+//   }, [isLoggedIn, user]);
 import { Link } from 'react-router-dom';
 import { useState, useEffect } from 'react';
 import { FiMenu, FiX } from 'react-icons/fi';
 import PropTypes from 'prop-types';
 import ProfileDropdown from "./ProfileDropDown";
 import axios from 'axios';
+
+const API_BASE_URL = import.meta.env.VITE_API_URL; // ✅ FIXED: declared outside component
 
 const Navbar = ({ isLoggedIn, user, onLogout }) => {
   const [menuOpen, setMenuOpen] = useState(false);
@@ -13,13 +49,12 @@ const Navbar = ({ isLoggedIn, user, onLogout }) => {
 
   useEffect(() => {
     const fetchUserData = async () => {
-      if (isLoggedIn && user && user.email) {
+      if (isLoggedIn && user?.email) {
         setLoading(true);
         try {
-          const response = await axios.post(
-            `http://localhost:5000/users/getProfile`, 
-            { email: user.email }
-          );
+          const response = await axios.post(`${API_BASE_URL}/users/getProfile`, {
+            email: user.email
+          });
           setUserData(response.data);
         } catch (error) {
           console.error('Error fetching user profile:', error);
@@ -31,6 +66,9 @@ const Navbar = ({ isLoggedIn, user, onLogout }) => {
 
     fetchUserData();
   }, [isLoggedIn, user]);
+
+ 
+
 
   // Close dropdown when clicking outside
   useEffect(() => {
