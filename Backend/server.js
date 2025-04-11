@@ -28,7 +28,7 @@ app.use(
   cors({
     origin: [
       "http://localhost:5173",  "http://localhost:5174",
-     " https://digi-care-hack-mol6-0.vercel.app"
+     "https://digi-care-hack-mol6-0.vercel.app"
     ],
     methods: "GET,HEAD,PUT,PATCH,POST,DELETE",
     optionsSuccessStatus: 204,
