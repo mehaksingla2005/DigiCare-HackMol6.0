@@ -22,9 +22,11 @@ import DoctorRegistration from "./components/DoctorRegistration.jsx";
 import Register from "./components/Register.jsx";
 import Login from "./components/Login.jsx";
 import UserProfile from "./components/UserProfile";
+import UserGuidedFlow from "./components/UserGuidedFlow.jsx";   
+import Description from "./components/Description.jsx";
 
 
-function App() {
+function App() {  
 
   const [isLoggedIn, setIsLoggedIn] = useState(false);
 const [userData, setUserData] = useState(null); // Store full user
@@ -60,6 +62,8 @@ const handleLogout = () => {
         <Route path="/explore" element={<Explore />} />
         <Route path="/about" element={<AboutUsSection />} />
         <Route path="/footer" element={<Footer />} />
+        <Route path="/description" element={<Description />} />
+        <Route path="/user-guided-flow" element={<UserGuidedFlow />} />
        
         <Route path="/faq" element={<FAQ />} />
         <Route path="/portal" element={<FileUpload />} />
