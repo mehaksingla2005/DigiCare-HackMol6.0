@@ -17,9 +17,10 @@ const Navbar = ({ isLoggedIn, user, onLogout }) => {
         setLoading(true);
         try {
           const response = await axios.post(
-            `http://localhost:5000/users/getProfile`, 
+            `${import.meta.env.VITE_API_URL}/users/getProfile`, 
             { email: user.email }
           );
+          
           setUserData(response.data);
         } catch (error) {
           console.error('Error fetching user profile:', error);
