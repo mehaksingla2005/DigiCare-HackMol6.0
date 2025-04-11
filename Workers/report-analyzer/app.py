@@ -12,7 +12,7 @@ from urllib.parse import unquote
 
 load_dotenv()
 
-api_key = os.getenv("GEMINI_API_KEY")
+api_key = st.secrets["GEMINI_API_KEY"]
 if not api_key:
     st.error("Gemini API key not found. Please set the GEMINI_API_KEY environment variable.")
     st.stop()
@@ -92,7 +92,7 @@ def main():
     st.set_page_config(page_title="AI Medical Report Analyzer", layout="wide")
     st.title("🩺 AI-driven Medical Report Analyzer")
     query_params = st.query_params
-    print(f"Query Parameters: {query_params}")  # Debugging line
+    # print(f"Query Parameters: {query_params}")  # Debugging line
 # Check if 'pdf_link' exists in the query parameters
     if 'pdf_link' in query_params:
         pdf_url = unquote(query_params['pdf_link'])
