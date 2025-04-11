@@ -19,11 +19,23 @@ mongoose.connection.on("error", err => {
 mongoose.connection.on("disconnected", () => {
   console.log("MongoDB disconnected");
 });
-app.use(cors({
-    // origin: process.env.FRONTEND_URL || 'http://localhost:5173',
-    origin:true,
-    credentials: true
-}));
+// app.use(cors({
+//     // origin: process.env.FRONTEND_URL || 'http://localhost:5173',
+//     origin:true,
+//     credentials: true
+// }));
+app.use(
+  cors({
+    origin: [
+      "http://localhost:5173",  "http://localhost:5174",
+     " https://digi-care-hack-mol6-0.vercel.app"
+    ],
+    methods: "GET,HEAD,PUT,PATCH,POST,DELETE",
+    optionsSuccessStatus: 204,
+    allowedHeaders: "Content-Type",
+    credentials: true, // Set to true if you need to allow credentials (e.g., cookies)
+  })
+);
 app.use(express.json()); 
 app.use(express.urlencoded({ extended: true })); 
 app.use(cookieParser())
