@@ -14,7 +14,7 @@
 
 ### For Healthcare Professionals 👨‍⚕️👩‍⚕️
 
-- **🧠 AI Image Analysis** – Instantly analyze X-rays, MRIs, and other medical imagery with state-of-the-art AI
+- **🧠 Report Analysis** – Instantly analyze reports and other medical data with state-of-the-art AI
 - **📊 Smart History Scan** – Extract critical insights from comprehensive patient histories
 - **🏥 Doctor Dashboard** – Access patient records, appointments, and diagnostic tools in one place
 - **📱 Quick Decision Support** – Receive AI-assisted diagnostic suggestions with confidence scores
@@ -104,7 +104,6 @@
    ```bash
    cd ../backend
    npm install
-   pip install -r requirements.txt
    ```
 
 4. **Set up environment variables**
