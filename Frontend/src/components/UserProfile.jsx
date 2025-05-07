@@ -2,14 +2,16 @@ import React, { useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { FaFilePdf } from "react-icons/fa";
 import axios from "axios";
+import { toast } from "react-hot-toast";
 
 const UserProfile = ({ isLoggedIn, user, onLogout }) => {
   const [profileData, setProfileData] = useState(null);
-  const [patients, setPatients] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [analyzedReports, setAnalyzedReports] = useState({});
   const [analyzingIndex, setAnalyzingIndex] = useState(null);
+  const [doctorPatients, setDoctorPatients] = useState([]);
+  const [isLoadingPatients, setIsLoadingPatients] = useState(true);
 
   // Add missing function to format response text
   const formatResponseText = (text) => {
@@ -17,24 +19,19 @@ const UserProfile = ({ isLoggedIn, user, onLogout }) => {
     return text.split('\n').filter(paragraph => paragraph.trim() !== '');
   };
 
-  const handleSmartScan = async () => {
+  const handleSmartScan = async (patient) => {
     try {
       // Prepare the request data
       const requestData = {
-        fullName: "Mohit Kumar",
-        age: 25,
-        gender: "Male",
-        bloodGroup: "A+",
-        dateOfBirth: "2001-04-20",
-        medicalHistory: `Diabetes Mellitus Type 2: Diagnosed 7 years ago. Currently managed with oral hypoglycemic agents (e.g., Metformin) and dietary modifications. Occasional episodes of hyperglycemia noted.
-  Skin Allergy (Atopic Dermatitis/Contact Dermatitis): Persistent for the past 3 years. Triggered by exposure to dust, synthetic fabrics, and certain soaps. Symptoms include itching, redness, and dry patches primarily on the arms and legs.`,
-        currentMedications: `Metformin 500 mg twice daily
-  Antihistamines (e.g., Cetirizine) as needed for allergy
-  Topical corticosteroids prescribed during flare-ups`,
-        familyMedicalHistory: "Father had Type 2 Diabetes\nMother had eczema",
-        documents: [
-          "https://res.cloudinary.com/df0v2yuha/raw/upload/v1744267357/patients/documents/hlx6mwsnhsiebkeo91lg",
-        ],
+        fullName: patient.name,
+        age: patient.age,
+        gender: patient.gender,
+        bloodGroup: patient.bloodGroup,
+        dateOfBirth: patient.dateOfBirth,
+        medicalHistory: patient.medicalHistory,
+        currentMedications: patient.currentMedications,
+        familyMedicalHistory: patient.familyMedicalHistory,
+        documents: patient.documents,
         summary: [""],
       };
   
@@ -53,7 +50,7 @@ const UserProfile = ({ isLoggedIn, user, onLogout }) => {
       // Create a temporary anchor element to trigger download
       const link = document.createElement('a');
       link.href = url;
-      link.setAttribute('download', `SmartScan_${requestData.fullName}.pdf`); // Set the file name for download
+      link.setAttribute('download', `SmartScan_${patient.name}.pdf`); // Set the file name for download
       document.body.appendChild(link);
       
       // Trigger the download
@@ -121,19 +118,45 @@ const UserProfile = ({ isLoggedIn, user, onLogout }) => {
   }, [isLoggedIn, user]);
 
   useEffect(() => {
-    if (profileData?.userType === "doctor" && profileData.typeId?.id) {
-      fetch(
-        `${import.meta.env.VITE_API_URL}/doctors/${
-          profileData.typeId.id
-        }/patients`
-      )
-        .then((res) => {
-          if (!res.ok) throw new Error("Failed to fetch patients.");
-          return res.json();
-        })
-        .then((data) => setPatients(data))
-        .catch(console.error);
-    }
+    const fetchDoctorPatients = async () => {
+      if (!profileData?.typeId?.id) return;
+
+      setIsLoadingPatients(true);
+      try {
+        console.log('Fetching patients for doctor ID:', profileData.typeId.id);
+        const response = await fetch(
+          `${import.meta.env.VITE_API_URL}/api/doctors/${profileData.typeId.id}/patients`,
+          {
+            method: 'GET',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            credentials: 'include'
+          }
+        );
+
+        if (!response.ok) {
+          throw new Error('Failed to fetch patients');
+        }
+
+        const data = await response.json();
+        console.log('Fetched patients data:', data);
+        
+        if (data.patients && Array.isArray(data.patients)) {
+          setDoctorPatients(data.patients);
+        } else {
+          console.error('Invalid patients data format:', data);
+          setDoctorPatients([]);
+        }
+      } catch (error) {
+        console.error('Error fetching doctor patients:', error);
+        setDoctorPatients([]);
+      } finally {
+        setIsLoadingPatients(false);
+      }
+    };
+
+    fetchDoctorPatients();
   }, [profileData]);
 
   const handleLogout = () => {
@@ -163,6 +186,19 @@ const UserProfile = ({ isLoggedIn, user, onLogout }) => {
   const isDoctor = profileData.userType === "doctor";
   const isPatient = profileData.userType === "patient";
   const details = profileData.typeId || {};
+
+  const toast = (message) => {
+    // Simple implementation - in a real app, you'd use a proper toast library
+    const toastElement = document.createElement("div");
+    toastElement.className = "fixed top-4 right-4 bg-blue-500 text-white px-6 py-3 rounded-lg shadow-lg z-50 transform transition-all duration-500 ease-in-out";
+    toastElement.textContent = message;
+    document.body.appendChild(toastElement);
+    
+    setTimeout(() => {
+      toastElement.classList.add("opacity-0");
+      setTimeout(() => document.body.removeChild(toastElement), 500);
+    }, 3000);
+  };
 
   return (
     <div className="min-h-screen py-10 mt-10">
@@ -323,34 +359,6 @@ const UserProfile = ({ isLoggedIn, user, onLogout }) => {
             </div>
           )}
 
-          {isPatient && details.doctors?.length > 0 && (
-            <div className="mt-10">
-              <h2 className="text-2xl font-semibold mb-4">
-                Associated Doctors
-              </h2>
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                {details.doctors.map((doc, idx) => (
-                  <div
-                    key={idx}
-                    className="flex items-center p-4 border rounded-lg shadow hover:shadow-md transition"
-                  >
-                    <img
-                      src={doc.profilePhoto || "/placeholder.png"}
-                      alt={doc.fullName}
-                      className="w-16 h-16 rounded-full object-cover border-2 border-blue-500 mr-4"
-                    />
-                    <div>
-                      <h3 className="text-lg font-medium">{doc.fullName}</h3>
-                      <p className="text-sm text-gray-600">
-                        {doc.specializations?.join(", ")}
-                      </p>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </div>
-          )}
-
           {isDoctor && (
             <div className="mt-10">
               <div className="flex justify-between items-center mb-4">
@@ -358,7 +366,10 @@ const UserProfile = ({ isLoggedIn, user, onLogout }) => {
                   Patients Under Your Care
                 </h2>
                 <button
-                  onClick={() => navigate("/add-patient")}
+                  onClick={() => {
+                    console.log('Doctor ID:', profileData.typeId.id);
+                    navigate("/add-patient", { state: { doctorId: profileData.typeId.id } });
+                  }}
                   className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-md shadow"
                 >
                   + Add Patient
@@ -366,44 +377,70 @@ const UserProfile = ({ isLoggedIn, user, onLogout }) => {
               </div>
 
               <div className="overflow-x-auto">
-                <div className="flex gap-6 min-w-[600px]">
-                  <div className="border rounded-xl shadow-md hover:shadow-lg transition bg-white p-4 flex items-center gap-6 min-w-[500px]">
-                    <img
-                      src="https://res.cloudinary.com/df0v2yuha/image/upload/v1744345461/patients/profile_photos/zfhnkhsrnxmnbie5agi4.jpg"
-                      alt="Mohit Kumar"
-                      className="w-24 h-24 rounded-full object-cover border-2 border-blue-500"
-                    />
-                    <div className="flex flex-col justify-between">
-                      <div>
-                        <h3 className="text-lg font-bold">Mohit Kumar</h3>
-                        <p className="text-sm text-gray-600">
-                          Email: mohitk@gmail.com
-                        </p>
-                        <p className="text-sm text-gray-600">Age: 25</p>
-                        <p className="text-sm text-gray-600">Gender: Male</p>
-                      </div>
-                      <div className="mt-3 flex flex-col sm:flex-row sm:items-center gap-3">
-                        <div className="flex items-center gap-2">
-                          <FaFilePdf className="text-red-500 w-5 h-5" />
-                          <a
-                            href="https://res.cloudinary.com/df0v2yuha/raw/upload/v1744345462/patients/documents/w6idbvbhk4wbedvyalfm"
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="text-blue-700 hover:underline text-sm"
-                          >
-                            View Report
-                          </a>
-                        </div>
-                        <button
-                          onClick={handleSmartScan}
-                          className="bg-green-600 hover:bg-green-700 text-white px-3 py-1 rounded-md text-sm shadow"
-                        >
-                          Smart Scan
-                        </button>
-                      </div>
-                    </div>
+                {isLoadingPatients ? (
+                  <div className="flex justify-center py-8">
+                    <div className="w-8 h-8 border-t-4 border-b-4 border-blue-500 rounded-full animate-spin"></div>
                   </div>
-                </div>
+                ) : doctorPatients.length === 0 ? (
+                  <div className="text-center py-10 bg-gray-50 rounded-lg border border-gray-200 border-dashed">
+                    <svg className="w-14 h-14 mx-auto text-gray-300 mb-3" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"></path>
+                    </svg>
+                    <p className="text-gray-500 font-medium">No patients added yet</p>
+                    <p className="text-sm mt-2 text-gray-400">Click the Add Patient button to add patients to your list</p>
+                  </div>
+                ) : (
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                    {doctorPatients.map((patient) => (
+                      <div key={patient.id} className="border rounded-xl shadow-md hover:shadow-lg transition bg-white p-4">
+                        <div className="flex items-center gap-4">
+                          <img
+                            src={patient.profilePhoto || "/placeholder.png"}
+                            alt={patient.name}
+                            className="w-20 h-20 rounded-full object-cover border-2 border-blue-500"
+                          />
+                          <div className="flex-1">
+                            <h3 className="text-lg font-bold">{patient.name}</h3>
+                            <p className="text-sm text-gray-600">
+                              Email: {patient.email}
+                            </p>
+                            <p className="text-sm text-gray-600">Age: {patient.age}</p>
+                            <p className="text-sm text-gray-600">Gender: {patient.gender}</p>
+                            {patient.bloodGroup && (
+                              <p className="text-sm text-gray-600">Blood Group: {patient.bloodGroup}</p>
+                            )}
+                          </div>
+                        </div>
+                        
+                        <div className="mt-4 pt-4 border-t border-gray-100">
+                          <div className="flex items-center justify-between">
+                            <div className="flex items-center gap-2">
+                              <FaFilePdf className="text-red-500 w-5 h-5" />
+                              {patient.documents && patient.documents.length > 0 ? (
+                                <a
+                                  href={patient.documents[0]}
+                                  target="_blank"
+                                  rel="noopener noreferrer"
+                                  className="text-blue-700 hover:underline text-sm"
+                                >
+                                  View Report
+                                </a>
+                              ) : (
+                                <span className="text-gray-500 text-sm">No reports</span>
+                              )}
+                            </div>
+                            <button
+                              onClick={() => handleSmartScan(patient)}
+                              className="bg-green-600 hover:bg-green-700 text-white px-3 py-1 rounded-md text-sm shadow"
+                            >
+                              Smart Scan
+                            </button>
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
               </div>
             </div>
           )}
