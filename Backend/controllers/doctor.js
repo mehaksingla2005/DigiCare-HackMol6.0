@@ -313,3 +313,49 @@ exports.deleteDoctor = async (req, res) => {
     });
   }
 };
+
+// Add this new controller method
+exports.getDoctorPatients = async (req, res) => {
+  try {
+    const { id } = req.params;
+    
+    // Find the doctor and populate all patient fields
+    const doctor = await Doctor.findById(id).populate({
+      path: 'patients',
+      select: 'fullName email gender age bloodGroup medicalHistory documents profilePhoto currentMedications familyMedicalHistory dateOfBirth'
+    });
+    
+    if (!doctor) {
+      return res.status(404).json({
+        error: 'Doctor not found'
+      });
+    }
+    
+    // Map the data to match frontend expectations
+    const formattedPatients = doctor.patients.map(patient => ({
+      id: patient._id,
+      name: patient.fullName,
+      email: patient.email,
+      gender: patient.gender,
+      age: patient.age,
+      profilePhoto: patient.profilePhoto,
+      documents: patient.documents,
+      medicalHistory: patient.medicalHistory,
+      currentMedications: patient.currentMedications,
+      familyMedicalHistory: patient.familyMedicalHistory,
+      bloodGroup: patient.bloodGroup,
+      dateOfBirth: patient.dateOfBirth
+    }));
+    
+    console.log('Sending patients data:', formattedPatients); // Add this for debugging
+    res.status(200).json({
+      patients: formattedPatients
+    });
+  } catch (error) {
+    console.error('Error fetching doctor patients:', error);
+    res.status(500).json({
+      error: 'Failed to fetch doctor patients',
+      details: error.message
+    });
+  }
+};

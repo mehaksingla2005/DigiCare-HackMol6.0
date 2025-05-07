@@ -9,7 +9,8 @@ const {
   getDoctorById, 
   searchDoctors, 
   updateDoctor, 
-  deleteDoctor 
+  deleteDoctor,
+  getDoctorPatients
 } = require('../controllers/doctor');
 
 // Configure multer for file uploads
@@ -42,6 +43,9 @@ router.get('/:id', getDoctorById);
 
 // Read - Search doctors by criteria
 router.get('/search', searchDoctors);
+
+// Read - Get doctor patients
+router.get('/:id/patients', getDoctorPatients);
 
 // Update - Update doctor profile
 router.put('/:id', verifyToken, handleFileUpload, updateDoctor);

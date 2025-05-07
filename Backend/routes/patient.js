@@ -1,6 +1,6 @@
 const express = require('express');
 const app = express();
-const { registerPatient,getPatientProfile,updatePatientProfile,deletePatientProfile,removeDocument } = require('../controllers/patient');
+const { registerPatient,getPatientProfile,updatePatientProfile,deletePatientProfile,removeDocument, getAllPatients, addPatientToDoctor } = require('../controllers/patient');
 const multer = require("multer");
 const { storage } = require('../utils/cloudinary');
 const verifyToken = require('../middleware/auth')
@@ -48,5 +48,11 @@ router.post(
   verifyToken,
   removeDocument
 );
+
+// Get all patients with search
+router.get('/all', verifyToken, getAllPatients);
+
+// Add patient to doctor
+router.post('/add-to-doctor', verifyToken, addPatientToDoctor);
 
 module.exports = router;

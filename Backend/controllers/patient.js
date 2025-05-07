@@ -1,6 +1,7 @@
 // controllers/patientController.js
 const Patient = require('../models/patient');
 const User = require('../models/user');
+const Doctor = require('../models/doctor');
 
 exports.registerPatient = async (req, res) => {
   try {
@@ -320,6 +321,93 @@ exports.removeDocument = async (req, res) => {
     console.error('Error removing document:', error);
     res.status(500).json({
       error: 'Failed to remove document',
+      details: error.message
+    });
+  }
+};
+
+// Get all patients with search functionality
+exports.getAllPatients = async (req, res) => {
+  try {
+    const { search } = req.query;
+    let query = {};
+
+    // If search query exists, search by name
+    if (search) {
+      query.fullName = { $regex: search, $options: 'i' };
+    }
+
+    const patients = await Patient.find(query).select('fullName email gender age bloodGroup medicalHistory');
+
+    res.status(200).json({
+      count: patients.length,
+      patients: patients.map(patient => ({
+        id: patient._id,
+        name: patient.fullName,
+        email: patient.email,
+        gender: patient.gender,
+        age: patient.age,
+        bloodGroup: patient.bloodGroup,
+        condition: patient.medicalHistory
+      }))
+    });
+  } catch (error) {
+    console.error('Error fetching patients:', error);
+    res.status(500).json({
+      error: 'Failed to fetch patients',
+      details: error.message
+    });
+  }
+};
+
+// Add patient to doctor's list
+exports.addPatientToDoctor = async (req, res) => {
+  try {
+    const { doctorId, patientId } = req.body;
+
+    if (!doctorId || !patientId) {
+      return res.status(400).json({
+        error: 'Doctor ID and Patient ID are required'
+      });
+    }
+
+    // Find both doctor and patient
+    const doctor = await Doctor.findById(doctorId);
+    const patient = await Patient.findById(patientId);
+
+    if (!doctor || !patient) {
+      return res.status(404).json({
+        error: 'Doctor or Patient not found'
+      });
+    }
+
+    // Check if patient is already in doctor's list
+    if (doctor.patients.includes(patientId)) {
+      return res.status(400).json({
+        error: 'Patient is already in doctor\'s list'
+      });
+    }
+
+    // Add patient to doctor's list
+    doctor.patients.push(patientId);
+    await doctor.save();
+
+    // Add doctor to patient's list
+    patient.doctors.push(doctorId);
+    await patient.save();
+
+    res.status(200).json({
+      message: 'Patient added to doctor\'s list successfully',
+      doctor: {
+        id: doctor._id,
+        fullName: doctor.fullName,
+        patients: doctor.patients
+      }
+    });
+  } catch (error) {
+    console.error('Error adding patient to doctor:', error);
+    res.status(500).json({
+      error: 'Failed to add patient to doctor',
       details: error.message
     });
   }

@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from "react";
+import { useLocation } from 'react-router-dom';
  
  // PatientSearchBox Component
  const PatientSearchBox = ({ searchQuery, setSearchQuery, isSearching }) => {
@@ -240,6 +241,9 @@ import React, { useState, useEffect } from "react";
    const [searchResults, setSearchResults] = useState([]);
    const [linkedPatients, setLinkedPatients] = useState([]);
    const [isSearching, setIsSearching] = useState(false);
+   const location = useLocation();
+   
+   const doctorId = location.state?.doctorId;
  
    // Search for patients when query changes
    useEffect(() => {
@@ -250,29 +254,72 @@ import React, { useState, useEffect } from "react";
  
      setIsSearching(true);
      
-     // Simulate API call with setTimeout
-     const timeoutId = setTimeout(() => {
-       const filteredPatients = mockPatients.filter(patient => 
-         patient.name.toLowerCase().includes(searchQuery.toLowerCase())
-       );
-       setSearchResults(filteredPatients);
-       setIsSearching(false);
-     }, 500);
+     // Fetch patients from API
+     const fetchPatients = async () => {
+       try {
+         const response = await fetch(
+           `${import.meta.env.VITE_API_URL}/api/patients/all?search=${encodeURIComponent(searchQuery)}`,
+           {
+             credentials: 'include'
+           }
+         );
+         
+         if (!response.ok) {
+           throw new Error('Failed to fetch patients');
+         }
+         
+         const data = await response.json();
+         setSearchResults(data.patients);
+       } catch (error) {
+         console.error('Error fetching patients:', error);
+         toast('Failed to fetch patients');
+       } finally {
+         setIsSearching(false);
+       }
+     };
  
+     const timeoutId = setTimeout(fetchPatients, 500);
      return () => clearTimeout(timeoutId);
    }, [searchQuery]);
  
    // Handle adding patient to doctor
-   const handleAddPatient = (patient) => {
-     // Check if patient is already linked
-     if (linkedPatients.some(p => p.id === patient.id)) {
-       toast("Patient is already linked to your account");
-       return;
+   const handleAddPatient = async (patient) => {
+     try {
+       // Check if patient is already linked
+       if (linkedPatients.some(p => p.id === patient.id)) {
+         toast("Patient is already linked to your account");
+         return;
+       }
+
+       // Check if we have the doctor ID
+       if (!doctorId) {
+         toast("Doctor ID not found");
+         return;
+       }
+
+       const response = await fetch(`${import.meta.env.VITE_API_URL}/api/patients/add-to-doctor`, {
+         method: 'POST',
+         headers: {
+           'Content-Type': 'application/json',
+         },
+         credentials: 'include',
+         body: JSON.stringify({
+           doctorId: doctorId,
+           patientId: patient.id
+         })
+       });
+
+       if (!response.ok) {
+         throw new Error('Failed to add patient');
+       }
+
+       // Update linked patients
+       setLinkedPatients([...linkedPatients, patient]);
+       toast("Patient added successfully");
+     } catch (error) {
+       console.error('Error adding patient:', error);
+       toast("Failed to add patient");
      }
- 
-     // Update linked patients
-     setLinkedPatients([...linkedPatients, patient]);
-     toast("Patient added successfully");
    };
  
    // Handle removing linked patient
@@ -280,6 +327,49 @@ import React, { useState, useEffect } from "react";
      setLinkedPatients(linkedPatients.filter(p => p.id !== patientId));
      toast("Patient removed from your list");
    };
+ 
+   // Modify the useEffect for fetching linked patients
+   useEffect(() => {
+     const fetchLinkedPatients = async () => {
+       if (!doctorId) return;
+
+       try {
+         // Update the endpoint to match the backend route
+         const response = await fetch(
+           `${import.meta.env.VITE_API_URL}/api/doctors/${doctorId}/patients`,
+           {
+             method: 'GET',
+             headers: {
+               'Content-Type': 'application/json',
+             },
+             credentials: 'include'
+           }
+         );
+
+         if (!response.ok) {
+           throw new Error('Failed to fetch linked patients');
+         }
+
+         const data = await response.json();
+         console.log('Linked patients data:', data);
+
+         // The response will now have a patients array
+         setLinkedPatients(data.patients.map(patient => ({
+           id: patient.id,
+           name: patient.name,
+           email: patient.email,
+           gender: patient.gender,
+           age: patient.age,
+           condition: patient.condition
+         })));
+       } catch (error) {
+         console.error('Error fetching linked patients:', error);
+         toast('Failed to fetch linked patients');
+       }
+     };
+
+     fetchLinkedPatients();
+   }, [doctorId]);
  
    return (
      <div className="min-h-screen bg-gray-100"> 
