@@ -12,6 +12,7 @@ const UserProfile = ({ isLoggedIn, user, onLogout }) => {
   const [analyzingIndex, setAnalyzingIndex] = useState(null);
   const [doctorPatients, setDoctorPatients] = useState([]);
   const [isLoadingPatients, setIsLoadingPatients] = useState(true);
+  const [scanningPatientId, setScanningPatientId] = useState(null);
 
   // Add missing function to format response text
   const formatResponseText = (text) => {
@@ -21,6 +22,7 @@ const UserProfile = ({ isLoggedIn, user, onLogout }) => {
 
   const handleSmartScan = async (patient) => {
     try {
+      setScanningPatientId(patient.id);
       // Prepare the request data
       const requestData = {
         fullName: patient.name,
@@ -64,6 +66,8 @@ const UserProfile = ({ isLoggedIn, user, onLogout }) => {
       console.error("Error during Smart Scan:", error);
       // Display error to user
       alert("Failed to generate the report. Please try again.");
+    } finally {
+      setScanningPatientId(null);
     }
   };
 
@@ -431,9 +435,21 @@ const UserProfile = ({ isLoggedIn, user, onLogout }) => {
                             </div>
                             <button
                               onClick={() => handleSmartScan(patient)}
-                              className="bg-green-600 hover:bg-green-700 text-white px-3 py-1 rounded-md text-sm shadow"
+                              disabled={scanningPatientId === patient.id}
+                              className={`${
+                                scanningPatientId === patient.id 
+                                  ? 'bg-gray-400 cursor-not-allowed' 
+                                  : 'bg-green-600 hover:bg-green-700'
+                              } text-white px-3 py-1 rounded-md text-sm shadow flex items-center gap-2`}
                             >
-                              Smart Scan
+                              {scanningPatientId === patient.id ? (
+                                <>
+                                  <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                                  Generating...
+                                </>
+                              ) : (
+                                'Smart Scan'
+                              )}
                             </button>
                           </div>
                         </div>
